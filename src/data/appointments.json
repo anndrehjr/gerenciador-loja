@@ -1,0 +1,98 @@
+[
+  {
+    "id": 1,
+    "clientId": 1,
+    "serviceId": 1,
+    "date": "2025-03-15T10:00:00",
+    "status": "agendado",
+    "notes": "Primeira consulta"
+  },
+  {
+    "id": 2,
+    "clientId": 2,
+    "serviceId": 5,
+    "date": "2025-03-16T14:00:00",
+    "status": "confirmado",
+    "notes": "Cliente pediu modelagem específica"
+  },
+  {
+    "id": 3,
+    "clientId": 3,
+    "serviceId": 8,
+    "date": "2025-03-17T09:30:00",
+    "status": "completo",
+    "notes": "Cliente muito satisfeito"
+  },
+  {
+    "id": 4,
+    "clientId": 4,
+    "serviceId": 12,
+    "date": "2025-03-18T13:00:00",
+    "status": "cancelado",
+    "notes": "Cliente desmarcou por imprevisto"
+  },
+  {
+    "id": 5,
+    "clientId": 5,
+    "serviceId": 17,
+    "date": "2025-03-19T15:00:00",
+    "status": "agendado",
+    "notes": "Cliente quer um formato diferente"
+  },
+  {
+    "id": 6,
+    "clientId": 6,
+    "serviceId": 23,
+    "date": "2025-03-20T16:00:00",
+    "status": "confirmado",
+    "notes": "Cliente preferiu unhas naturais"
+  },
+  {
+    "id": 7,
+    "clientId": 7,
+    "serviceId": 30,
+    "date": "2025-03-21T17:30:00",
+    "status": "completo",
+    "notes": "Penteado finalizado com sucesso"
+  },
+  {
+    "id": 8,
+    "clientId": 8,
+    "serviceId": 4,
+    "date": "2025-03-22T10:30:00",
+    "status": "cancelado",
+    "notes": "Cliente adiou para outro dia"
+  },
+  {
+    "id": 9,
+    "clientId": 9,
+    "serviceId": 9,
+    "date": "2025-03-23T14:45:00",
+    "status": "agendado",
+    "notes": "Tratamento para reduzir frizz"
+  },
+  {
+    "id": 10,
+    "clientId": 10,
+    "serviceId": 14,
+    "date": "2025-03-24T11:15:00",
+    "status": "confirmado",
+    "notes": "Cliente quer um tom mais claro"
+  },
+  {
+    "id": 11,
+    "clientId": 11,
+    "serviceId": 21,
+    "date": "2025-03-25T12:00:00",
+    "status": "completo",
+    "notes": "Unhas finalizadas com esmalte vermelho"
+  },
+  {
+    "id": 12,
+    "clientId": 12,
+    "serviceId": 26,
+    "date": "2025-03-26T13:30:00",
+    "status": "cancelado",
+    "notes": "Cliente preferiu esperar mais tempo"
+  }
+]

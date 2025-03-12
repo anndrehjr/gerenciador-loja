@@ -1,0 +1,183 @@
+[
+  {
+    "id": 1,
+    "name": "Corte de Cabelo Feminino",
+    "price": 50,
+    "description": "Corte profissional para cabelos femininos"
+  },
+  {
+    "id": 2,
+    "name": "Corte de Cabelo Masculino",
+    "price": 40,
+    "description": "Corte profissional para cabelos masculinos"
+  },
+  {
+    "id": 3,
+    "name": "Corte Infantil",
+    "price": 35,
+    "description": "Corte especial para crianças"
+  },
+  {
+    "id": 4,
+    "name": "Escova Simples",
+    "price": 30,
+    "description": "Escova tradicional para modelagem dos fios"
+  },
+  {
+    "id": 5,
+    "name": "Escova Modelada",
+    "price": 40,
+    "description": "Escova com modelagem para diferentes estilos"
+  },
+  {
+    "id": 6,
+    "name": "Hidratação Capilar",
+    "price": 60,
+    "description": "Tratamento para hidratação profunda dos fios"
+  },
+  {
+    "id": 7,
+    "name": "Reconstrução Capilar",
+    "price": 90,
+    "description": "Tratamento para recuperação de cabelos danificados"
+  },
+  {
+    "id": 8,
+    "name": "Progressiva",
+    "price": 180,
+    "description": "Alisamento capilar duradouro"
+  },
+  {
+    "id": 9,
+    "name": "Botox Capilar",
+    "price": 150,
+    "description": "Tratamento para reduzir volume e frizz"
+  },
+  {
+    "id": 10,
+    "name": "Selagem Capilar",
+    "price": 130,
+    "description": "Fechamento das cutículas para um cabelo mais brilhoso"
+  },
+  {
+    "id": 11,
+    "name": "Pintura de Cabelo",
+    "price": 120,
+    "description": "Coloração completa dos fios"
+  },
+  {
+    "id": 12,
+    "name": "Luzes",
+    "price": 180,
+    "description": "Iluminação dos fios com técnica de mechas finas"
+  },
+  {
+    "id": 13,
+    "name": "Mechas",
+    "price": 200,
+    "description": "Técnica de coloração para efeitos naturais"
+  },
+  {
+    "id": 14,
+    "name": "Reflexo",
+    "price": 170,
+    "description": "Técnica de descoloração para realce do cabelo"
+  },
+  {
+    "id": 15,
+    "name": "Tonalização",
+    "price": 90,
+    "description": "Refrescamento da cor dos fios"
+  },
+  {
+    "id": 16,
+    "name": "Banho de Brilho",
+    "price": 80,
+    "description": "Tratamento para brilho e realce da cor"
+  },
+  {
+    "id": 17,
+    "name": "Design de Sobrancelhas",
+    "price": 35,
+    "description": "Modelagem e ajuste das sobrancelhas"
+  },
+  {
+    "id": 18,
+    "name": "Sobrancelha com Henna",
+    "price": 50,
+    "description": "Coloração temporária das sobrancelhas"
+  },
+  {
+    "id": 19,
+    "name": "Alongamento de Cílios",
+    "price": 120,
+    "description": "Aplicação de cílios fio a fio"
+  },
+  {
+    "id": 20,
+    "name": "Manicure Simples",
+    "price": 30,
+    "description": "Corte e esmaltação das unhas das mãos"
+  },
+  {
+    "id": 21,
+    "name": "Pedicure Simples",
+    "price": 35,
+    "description": "Corte e esmaltação das unhas dos pés"
+  },
+  {
+    "id": 22,
+    "name": "Spa dos Pés",
+    "price": 70,
+    "description": "Tratamento relaxante para os pés"
+  },
+  {
+    "id": 23,
+    "name": "Unhas de Gel",
+    "price": 150,
+    "description": "Aplicação de unhas artificiais em gel"
+  },
+  {
+    "id": 24,
+    "name": "Unhas de Fibra",
+    "price": 180,
+    "description": "Alongamento de unhas com fibra de vidro"
+  },
+  {
+    "id": 25,
+    "name": "Depilação de Buço",
+    "price": 20,
+    "description": "Remoção de pelos na região do buço"
+  },
+  {
+    "id": 26,
+    "name": "Depilação de Axila",
+    "price": 35,
+    "description": "Remoção de pelos na região das axilas"
+  },
+  {
+    "id": 27,
+    "name": "Depilação de Pernas",
+    "price": 80,
+    "description": "Remoção de pelos das pernas"
+  },
+  {
+    "id": 28,
+    "name": "Depilação Íntima",
+    "price": 90,
+    "description": "Depilação completa da região íntima"
+  },
+  {
+    "id": 29,
+    "name": "Maquiagem Completa",
+    "price": 150,
+    "description": "Maquiagem profissional para eventos"
+  },
+  {
+    "id": 30,
+    "name": "Penteado para Eventos",
+    "price": 200,
+    "description": "Modelagem de penteados para ocasiões especiais"
+  }
+]
+
