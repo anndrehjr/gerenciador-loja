@@ -1,0 +1,448 @@
+/* custom-styles.css - Estilos personalizados para o site */
+
+/* Variáveis de cores - Modo claro */
+:root {
+    --primary-gradient: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 50%, hsl(var(--primary-foreground)) 100%);
+    --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+    --card-hover-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --button-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    --border-glow: 0 0 5px rgba(59, 130, 246, 0.5);
+    --animation-duration: 0.3s;
+  }
+  
+  /* Variáveis de cores - Modo escuro */
+  .dark {
+    --primary-gradient: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 50%, #1e293b 100%);
+    --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+    --card-hover-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+    --button-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+    --text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --border-glow: 0 0 8px rgba(59, 130, 246, 0.7);
+  }
+  
+  /* Animações */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  
+  @keyframes float {
+    0% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+    100% {
+      transform: translateY(0px);
+    }
+  }
+  
+  /* Estilos gerais */
+  body {
+    transition: background-color 0.5s ease, color 0.5s ease;
+  }
+  
+  /* Botões */
+  button, 
+  .btn, 
+  [type="button"], 
+  [type="submit"] {
+    position: relative;
+    overflow: hidden;
+    transition: all var(--animation-duration) ease !important;
+    box-shadow: var(--button-shadow);
+  }
+  
+  button:hover, 
+  .btn:hover, 
+  [type="button"]:hover, 
+  [type="submit"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  }
+  
+  button:active, 
+  .btn:active, 
+  [type="button"]:active, 
+  [type="submit"]:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Botão primário com gradiente */
+  button.bg-primary, 
+  .btn.bg-primary, 
+  [type="button"].bg-primary, 
+  [type="submit"].bg-primary {
+    background: var(--primary-gradient) !important;
+    background-size: 200% 200% !important;
+    animation: shimmer 3s ease infinite;
+  }
+  
+  /* Cards */
+  .card, 
+  .rounded-lg.border.bg-card {
+    transition: all var(--animation-duration) ease;
+    border: 1px solid transparent;
+    background-position: center;
+    background-size: cover;
+  }
+  
+  .card:hover, 
+  .rounded-lg.border.bg-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--card-hover-shadow);
+    border-color: hsl(var(--primary) / 0.3);
+  }
+  
+  /* Efeito de destaque para cards importantes */
+  .card.highlight, 
+  .rounded-lg.border.bg-card.highlight {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .card.highlight::before, 
+  .rounded-lg.border.bg-card.highlight::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--accent-gradient);
+    opacity: 0;
+    z-index: -1;
+    transition: opacity var(--animation-duration) ease;
+  }
+  
+  .card.highlight:hover::before, 
+  .rounded-lg.border.bg-card.highlight:hover::before {
+    opacity: 0.05;
+  }
+  
+  /* Inputs */
+  input, 
+  textarea, 
+  select {
+    transition: all var(--animation-duration) ease;
+    border: 1px solid hsl(var(--border));
+  }
+  
+  input:focus, 
+  textarea:focus, 
+  select:focus {
+    border-color: hsl(var(--primary));
+    box-shadow: var(--border-glow);
+  }
+  
+  /* Tabelas */
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+  }
+  
+  table th {
+    background-color: hsl(var(--muted) / 0.5);
+    font-weight: 600;
+  }
+  
+  table tr {
+    transition: all var(--animation-duration) ease;
+  }
+  
+  table tr:hover {
+    background-color: hsl(var(--accent) / 0.1);
+  }
+  
+  /* Status badges */
+  .status-badge {
+    position: relative;
+    overflow: hidden;
+    transition: all var(--animation-duration) ease;
+  }
+  
+  .status-badge::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(transparent, rgba(255, 255, 255, 0.3), transparent);
+    transform: rotate(30deg);
+    transition: all 0.5s ease;
+    opacity: 0;
+  }
+  
+  .status-badge:hover::after {
+    opacity: 1;
+    left: 100%;
+  }
+  
+  /* Navbar e sidebar */
+  nav, 
+  aside {
+    transition: all var(--animation-duration) ease;
+  }
+  
+  /* Links */
+  a {
+    position: relative;
+    transition: all var(--animation-duration) ease;
+  }
+  
+  a:not(.btn):after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background-color: hsl(var(--primary));
+    transition: width var(--animation-duration) ease;
+  }
+  
+  a:not(.btn):hover:after {
+    width: 100%;
+  }
+  
+  /* Ícones */
+  svg {
+    transition: all var(--animation-duration) ease;
+  }
+  
+  button:hover svg, 
+  a:hover svg {
+    transform: scale(1.1);
+  }
+  
+  /* Animações para elementos na página */
+  .animate-fadeIn {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+  
+  .animate-pulse {
+    animation: pulse 2s infinite;
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  /* Efeitos para o dashboard */
+  .dashboard-card {
+    position: relative;
+    overflow: hidden;
+    transition: all var(--animation-duration) ease;
+  }
+  
+  .dashboard-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: var(--primary-gradient);
+    transform: translateY(-100%);
+    transition: transform var(--animation-duration) ease;
+  }
+  
+  .dashboard-card:hover::before {
+    transform: translateY(0);
+  }
+  
+  /* Efeitos para gráficos */
+  .recharts-wrapper {
+    transition: all var(--animation-duration) ease;
+  }
+  
+  .recharts-wrapper:hover {
+    transform: scale(1.02);
+  }
+  
+  /* Efeitos para formulários */
+  form {
+    transition: all var(--animation-duration) ease;
+  }
+  
+  form:focus-within {
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.1);
+  }
+  
+  /* Efeitos para o modo escuro */
+  .dark .card, 
+  .dark .rounded-lg.border.bg-card {
+    background-color: hsl(var(--card));
+    border-color: hsl(var(--border));
+  }
+  
+  .dark .card:hover, 
+  .dark .rounded-lg.border.bg-card:hover {
+    background-color: hsl(var(--card) / 0.8);
+    border-color: hsl(var(--primary) / 0.5);
+  }
+  
+  /* Glassmorphism para elementos no modo escuro */
+  .dark .glass-effect {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Efeitos para o modo claro */
+  .light .glass-effect {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Efeitos para o hero section */
+  .hero-section {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .hero-section::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100px;
+    background: linear-gradient(to top, hsl(var(--background)), transparent);
+  }
+  
+  /* Efeitos para imagens */
+  img {
+    transition: all var(--animation-duration) ease;
+  }
+  
+  img:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Efeitos para o toggle de tema */
+  .theme-toggle {
+    position: relative;
+    overflow: hidden;
+    transition: all var(--animation-duration) ease;
+  }
+  
+  .theme-toggle:hover {
+    transform: rotate(15deg);
+  }
+  
+  /* Efeitos para o menu mobile */
+  .mobile-menu {
+    transition: all var(--animation-duration) ease;
+  }
+  
+  .mobile-menu.open {
+    animation: fadeIn var(--animation-duration) ease;
+  }
+  
+  /* Efeitos para notificações */
+  .notification {
+    animation: fadeIn var(--animation-duration) ease, pulse 2s infinite;
+  }
+  
+  /* Efeitos para o footer */
+  footer {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: var(--primary-gradient);
+  }
+  
+  /* Efeitos para o login */
+  .login-form {
+    transition: all var(--animation-duration) ease;
+  }
+  
+  .login-form:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--card-hover-shadow);
+  }
+  
+  /* Efeitos para o calendário */
+  .calendar-day {
+    transition: all var(--animation-duration) ease;
+  }
+  
+  .calendar-day:hover {
+    background-color: hsl(var(--primary) / 0.1);
+    transform: scale(1.1);
+  }
+  
+  .calendar-day.selected {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    transform: scale(1.1);
+  }
+  
+  /* Efeitos para o status dos agendamentos */
+  .status-agendado {
+    background: linear-gradient(135deg, #3b82f6, #60a5fa);
+    color: white;
+    text-shadow: var(--text-shadow);
+  }
+  
+  .status-confirmado {
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    color: white;
+    text-shadow: var(--text-shadow);
+  }
+  
+  .status-concluido {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    color: white;
+    text-shadow: var(--text-shadow);
+  }
+  
+  .status-cancelado {
+    background: linear-gradient(135deg, #ef4444, #f87171);
+    color: white;
+    text-shadow: var(--text-shadow);
+  }

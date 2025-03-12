@@ -17,6 +17,8 @@ export function ThemeProvider({ children }) {
   // Atualiza a classe 'dark' no elemento HTML e salva a preferência
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode)
+    // Adicionar também a classe 'light' quando não estiver no modo escuro
+    document.documentElement.classList.toggle("light", !darkMode)
     localStorage.setItem("theme", darkMode ? "dark" : "light")
   }, [darkMode])
 
@@ -34,4 +36,3 @@ export function useTheme() {
   }
   return context
 }
-

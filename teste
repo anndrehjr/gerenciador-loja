@@ -1,0 +1,34 @@
+// Adicionar classes para os gráficos
+<div className="grid gap-6 md:grid-cols-2">
+  {/* Gráfico de Status de Agendamentos */}
+  <div className="rounded-lg border bg-card p-4 shadow-sm transition-all duration-300 hover:shadow-md dashboard-card">
+    <h3 className="mb-4 text-lg font-semibold">Status dos Agendamentos</h3>
+    <div className="h-64">
+      <ResponsiveContainer width="100%" height="100%" className="animate-fadeIn">
+        <PieChart>
+          {/* Conteúdo do gráfico */}
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
+
+  {/* Gráfico de Serviços Populares */}
+  <div className="rounded-lg border bg-card p-4 shadow-sm transition-all duration-300 hover:shadow-md dashboard-card">
+    <h3 className="mb-4 text-lg font-semibold">Serviços Mais Populares</h3>
+    <div className="h-64">
+      <ResponsiveContainer width="100%" height="100%" className="animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+        <BarChart
+          data={getPopularServicesData()}
+          margin={{
+            top: 5,
+            right: 30,
+            left: 20,
+            bottom: 5,
+          }}
+        >
+          {/* Conteúdo do gráfico */}
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
+</div>

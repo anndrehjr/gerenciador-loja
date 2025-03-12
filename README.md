@@ -1,50 +1,38 @@
+# Sistema de Gerenciamento de Clientes, Serviços e Agendamentos
 
-# 🌟 **Portfolio Website - Moderno & Interativo**
+Um sistema completo para gerenciar clientes, serviços e agendamentos, com interface moderna e responsiva, suporte a tema claro/escuro e persistência de dados.
 
-![Next.js](https://img.shields.io/badge/Next.js-black?style=for-the-badge&logo=next.js&logoColor=white)
-![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white)
+https://gerenciador-loja.vercel.app
+## 📋 Funcionalidades
 
-## 🚀 **Características Principais**
+- **Gerenciamento de Clientes**: Cadastro, edição e exclusão de clientes
+- **Gerenciamento de Serviços**: Cadastro, edição e exclusão de serviços
+- **Agendamentos**: Agendamento de serviços para clientes em datas específicas
+- **Dashboard**: Visão geral com estatísticas e informações importantes
+- **Tema Claro/Escuro**: Alternância entre temas para melhor experiência visual
+- **Persistência de Dados**: Armazenamento local com suporte a importação/exportação
+- **Design Responsivo**: Funciona em dispositivos móveis e desktop
 
-- ✨ **Design moderno e responsivo**
-- 🌓 **Modo claro/escuro com persistência**
-- 🎯 **Navegação suave entre seções**
-- 💫 **Animações fluidas com Framer Motion**
-- 🎨 **Gradientes e efeitos visuais dinâmicos**
-- 📱 **Layout totalmente responsivo**
-- 🔄 **Integração com API do GitHub**
+## 🚀 Tecnologias Utilizadas
 
-## 🛠️ **Tecnologias Utilizadas**
+- **React**: Biblioteca JavaScript para construção de interfaces
+- **React Router**: Navegação entre páginas
+- **Context API**: Gerenciamento de estado global (tema escuro/claro)
+- **LocalStorage**: Persistência de dados no navegador
+- **Tailwind CSS**: Framework CSS para estilização
+- **Lucide React**: Biblioteca de ícones
 
-### **Frontend:**
-- ⚛️ **React.js**
-- 🔄 **Next.js**
-- 🎨 **Tailwind CSS**
-- ✨ **Framer Motion**
-- 🎯 **Lucide Icons**
+## 🔧 Instalação e Execução
 
-### **Integrações:**
-- 📊 **GitHub API**
-- 💾 **LocalStorage para persistência**
+### Pré-requisitos
 
-## 📦 **Estrutura do Projeto**
+- Node.js (versão 14 ou superior)
+- npm ou yarn
 
-```text
-portfolio/
-├── components/           # Componentes reutilizáveis
-│   ├── Button/           # Botões estilizados para diferentes ações
-│   └── Card/             # Cards para exibição de projetos e habilidades
-├── public/               # Imagens e arquivos públicos
-│   ├── menino.png        # Imagem principal
-│   ├── 1.png             # Outras imagens para o portfólio
-│   └── 2.png             # Outras imagens para o portfólio
-└── src/                  # Lógica principal do portfólio
-    └── App.js            # Componente principal onde o portfólio é montado
-```
+### Passos para instalação
 
-## 🌐 **Acesse o Portfólio Online**
-
-🔗 **Acesse o portfólio completo**: [Portfolio Online](https://portifolio-andre-junior.netlify.app)
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/seu-usuario/sistema-gerenciamento.git
+   cd sistema-gerenciamento
 
