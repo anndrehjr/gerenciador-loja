@@ -1,11 +1,16 @@
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import { HttpError } from "../middleware/errorHandler.js";
+import { normalizePhone } from "../utils/phone.js";
 
 const clientSchema = z.object({
   name: z.string().min(1),
   email: z.string().email().optional().nullable(),
-  phone: z.string().min(1).optional().nullable(),
+  phone: z
+    .string()
+    .transform((v) => normalizePhone(v) || null)
+    .optional()
+    .nullable(),
 });
 
 export async function listClients(req, res) {

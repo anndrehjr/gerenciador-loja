@@ -1,5 +1,13 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Scissors, CalendarClock, Settings as SettingsIcon, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Scissors,
+  CalendarClock,
+  Settings as SettingsIcon,
+  LogOut,
+  UserRound,
+} from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import ThemeToggle from "../../components/ThemeToggle.jsx";
 
@@ -7,6 +15,7 @@ const NAV_ITEMS = [
   { to: "/dashboard", label: "Painel", icon: LayoutDashboard },
   { to: "/clients", label: "Clientes", icon: Users },
   { to: "/services", label: "Serviços", icon: Scissors },
+  { to: "/professionals", label: "Profissionais", icon: UserRound },
   { to: "/appointments", label: "Agendamentos", icon: CalendarClock },
   { to: "/settings", label: "Configurações", icon: SettingsIcon },
 ];

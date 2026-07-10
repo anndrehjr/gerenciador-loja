@@ -10,6 +10,7 @@ import { authRouter } from "./routes/auth.routes.js";
 import { clientsRouter } from "./routes/clients.routes.js";
 import { servicesRouter } from "./routes/services.routes.js";
 import { appointmentsRouter } from "./routes/appointments.routes.js";
+import { professionalsRouter } from "./routes/professionals.routes.js";
 import { publicRouter } from "./routes/public.routes.js";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler.js";
 
@@ -57,6 +58,7 @@ app.use("/api/public", publicRouter);
 app.use("/api/clients", clientsRouter);
 app.use("/api/services", servicesRouter);
 app.use("/api/appointments", appointmentsRouter);
+app.use("/api/professionals", professionalsRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -25,21 +25,51 @@ model Client {
   id           String        @id @default(cuid())
   name         String
   email        String?       @unique
-  phone        String?
+  phone        String?       @unique
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   appointments Appointment[]
 }
 
 model Service {
+  id              String        @id @default(cuid())
+  name            String        @unique
+  description     String?
+  priceCents      Int
+  durationMinutes Int           @default(30)
+  active          Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  appointments    Appointment[]
+}
+
+model Professional {
   id           String        @id @default(cuid())
-  name         String        @unique
-  description  String?
-  priceCents   Int
+  name         String
+  photoUrl     String?
+  specialty    String?
+  bio          String?
   active       Boolean       @default(true)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  workingHours WorkingHour[]
   appointments Appointment[]
+}
+
+// Uma janela de trabalho contínua por dia da semana (0=domingo..6=sábado).
+// Sem entrada num dia = profissional não atende naquele dia.
+model WorkingHour {
+  id             String   @id @default(cuid())
+  weekday        Int
+  startMinute    Int
+  endMinute      Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  professionalId String
+
+  @@unique([professionalId, weekday])
 }
 
 enum AppointmentStatus {
@@ -63,7 +93,11 @@ model Appointment {
   service   Service @relation(fields: [serviceId], references: [id], onDelete: Restrict)
   serviceId String
 
+  professional   Professional? @relation(fields: [professionalId], references: [id], onDelete: Restrict)
+  professionalId String?
+
   @@index([clientId])
   @@index([serviceId])
   @@index([date])
+  @@index([professionalId])
 }

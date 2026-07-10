@@ -6,12 +6,20 @@ import Button from "../../components/ui/Button.jsx";
 import Select from "../../components/ui/Select.jsx";
 import Input from "../../components/ui/Input.jsx";
 
-const EMPTY_FORM = { clientId: "", serviceId: "", date: "", status: "AGENDADO", notes: "" };
+const EMPTY_FORM = {
+  clientId: "",
+  serviceId: "",
+  professionalId: "",
+  date: "",
+  status: "AGENDADO",
+  notes: "",
+};
 
 export default function Appointments() {
   const [appointments, setAppointments] = useState([]);
   const [clients, setClients] = useState([]);
   const [services, setServices] = useState([]);
+  const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -25,11 +33,13 @@ export default function Appointments() {
       api.get(`/appointments${query}`),
       api.get("/clients"),
       api.get("/services"),
+      api.get("/professionals"),
     ])
-      .then(([a, c, s]) => {
+      .then(([a, c, s, p]) => {
         setAppointments(a);
         setClients(c);
         setServices(s);
+        setProfessionals(p);
       })
       .finally(() => setLoading(false));
   }
@@ -52,6 +62,7 @@ export default function Appointments() {
       await api.post("/appointments", {
         clientId: form.clientId,
         serviceId: form.serviceId,
+        professionalId: form.professionalId || null,
         date: new Date(form.date).toISOString(),
         status: form.status,
         notes: form.notes || null,
@@ -132,6 +143,20 @@ export default function Appointments() {
             ))}
           </Select>
 
+          <Select
+            id="professionalId"
+            label="Profissional"
+            value={form.professionalId}
+            onChange={(e) => setForm({ ...form, professionalId: e.target.value })}
+          >
+            <option value="">Sem preferência</option>
+            {professionals.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </Select>
+
           <Input
             id="date"
             label="Data e hora"
@@ -173,7 +198,8 @@ export default function Appointments() {
               <div>
                 <div className="text-sm font-medium">{a.client.name}</div>
                 <div className="text-sm text-muted">
-                  {a.service.name} · {formatDateTime(a.date)}
+                  {a.service.name}
+                  {a.professional ? ` · ${a.professional.name}` : ""} · {formatDateTime(a.date)}
                 </div>
               </div>
               <div className="flex items-center gap-3">
