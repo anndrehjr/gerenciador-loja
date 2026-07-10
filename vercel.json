@@ -1,7 +1,0 @@
-{
-    "rewrites": [
-      { "source": "/(.*)", "destination": "/index.html" }
-    ],
-    "buildCommand": "npm install --force && npm run build",
-    "outputDirectory": "build"
-  }
