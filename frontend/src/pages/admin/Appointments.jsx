@@ -100,7 +100,7 @@ export default function Appointments() {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-5 sm:flex-row sm:items-end sm:flex-wrap"
+          className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-6 shadow-soft sm:flex-row sm:items-end sm:flex-wrap"
         >
           <Select
             id="clientId"
@@ -164,9 +164,12 @@ export default function Appointments() {
       ) : appointments.length === 0 ? (
         <p className="text-sm text-muted">Nenhum agendamento encontrado.</p>
       ) : (
-        <ul className="divide-y divide-line rounded-lg border border-line">
+        <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
           {appointments.map((a) => (
-            <li key={a.id} className="flex items-center justify-between gap-4 px-4 py-3">
+            <li
+              key={a.id}
+              className="flex items-center justify-between gap-4 px-5 py-3.5 transition duration-200 hover:bg-hover"
+            >
               <div>
                 <div className="text-sm font-medium">{a.client.name}</div>
                 <div className="text-sm text-muted">
@@ -177,7 +180,7 @@ export default function Appointments() {
                 <select
                   value={a.status}
                   onChange={(e) => handleStatusChange(a.id, e.target.value)}
-                  className="rounded-md border border-line bg-surface px-2 py-1 text-sm"
+                  className="rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sm outline-none transition duration-200 focus:border-accent focus:ring-2 focus:ring-accent/25"
                 >
                   {Object.entries(STATUS_LABELS).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -187,7 +190,7 @@ export default function Appointments() {
                 </select>
                 <button
                   onClick={() => handleDelete(a.id)}
-                  className="rounded-md p-2 text-muted hover:bg-bg hover:text-critical"
+                  className="rounded-lg p-2 text-muted transition duration-200 hover:bg-bg hover:text-critical"
                   aria-label="Remover"
                 >
                   <Trash2 className="h-4 w-4" />

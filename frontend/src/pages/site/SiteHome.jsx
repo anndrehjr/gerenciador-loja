@@ -20,14 +20,16 @@ export default function SiteHome() {
       <header className="border-b border-line">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-5">
           <div className="flex items-center gap-2 font-semibold">
-            <Scissors className="h-5 w-5 text-accent" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-accent-blue">
+              <Scissors className="h-3.5 w-3.5 text-white" />
+            </div>
             Salão
           </div>
           <nav className="flex items-center gap-6 text-sm text-muted">
-            <a href="#servicos" className="hover:text-ink">
+            <a href="#servicos" className="transition duration-200 hover:text-ink">
               Serviços
             </a>
-            <a href="#contato" className="hover:text-ink">
+            <a href="#contato" className="transition duration-200 hover:text-ink">
               Contato
             </a>
             <ThemeToggle />
@@ -36,11 +38,12 @@ export default function SiteHome() {
       </header>
 
       <main className="mx-auto max-w-3xl px-6">
-        <section className="py-20">
-          <h1 className="text-balance text-4xl font-semibold leading-tight sm:text-5xl">
+        <section className="relative overflow-hidden py-20">
+          <div className="pointer-events-none absolute -left-24 top-0 h-72 w-72 rounded-full bg-gradient-to-br from-violet-500/15 to-accent-blue/10 blur-3xl" />
+          <h1 className="relative text-balance text-4xl font-semibold leading-tight sm:text-5xl">
             Cuidado e estilo, com hora marcada.
           </h1>
-          <p className="mt-4 max-w-xl text-lg text-muted">
+          <p className="relative mt-4 max-w-xl text-lg text-muted">
             Cortes, coloração e tratamentos capilares num ambiente pensado para você.
           </p>
         </section>
@@ -58,16 +61,19 @@ export default function SiteHome() {
             <p className="mt-4 text-sm text-muted">Nenhum serviço disponível no momento.</p>
           )}
 
-          <ul className="mt-6 divide-y divide-line">
+          <ul className="mt-6 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
             {services.map((service) => (
-              <li key={service.id} className="flex items-start justify-between gap-6 py-4">
+              <li
+                key={service.id}
+                className="flex items-start justify-between gap-6 px-5 py-4 transition duration-200 hover:bg-hover"
+              >
                 <div>
                   <div className="font-medium">{service.name}</div>
                   {service.description && (
                     <div className="mt-0.5 text-sm text-muted">{service.description}</div>
                   )}
                 </div>
-                <div className="whitespace-nowrap font-medium tabular-nums">
+                <div className="whitespace-nowrap font-medium tabular-nums text-accent-ink">
                   {formatMoney(service.priceCents)}
                 </div>
               </li>

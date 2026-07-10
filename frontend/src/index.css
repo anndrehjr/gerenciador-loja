@@ -3,25 +3,27 @@
 @tailwind utilities;
 
 :root {
-  --bg: 250 249 246;
+  --bg: 250 250 250;
   --surface: 255 255 255;
-  --ink: 30 27 22;
-  --muted: 107 101 88;
-  --line: 221 216 206;
-  --accent: 168 100 42;
-  --accent-ink: 92 54 15;
-  --critical: 179 38 30;
+  --hover: 244 244 245;
+  --ink: 24 24 27;
+  --muted: 113 113 122;
+  --line: 228 228 231;
+  --accent: 139 92 246;
+  --accent-ink: 124 58 237;
+  --critical: 220 38 38;
 }
 
 :root.dark {
-  --bg: 22 21 26;
-  --surface: 31 30 36;
-  --ink: 237 233 226;
-  --muted: 156 151 140;
-  --line: 52 50 58;
-  --accent: 220 154 92;
-  --accent-ink: 244 217 184;
-  --critical: 229 135 126;
+  --bg: 9 9 11;
+  --surface: 17 17 19;
+  --hover: 24 24 27;
+  --ink: 255 255 255;
+  --muted: 161 161 170;
+  --line: 29 29 31;
+  --accent: 139 92 246;
+  --accent-ink: 196 181 253;
+  --critical: 248 113 113;
 }
 
 html {
@@ -34,4 +36,9 @@ html.dark {
 body {
   @apply bg-bg text-ink antialiased;
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+::selection {
+  @apply bg-accent/30;
 }
