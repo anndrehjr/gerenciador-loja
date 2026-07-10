@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: 250 249 246;
+  --surface: 255 255 255;
+  --ink: 30 27 22;
+  --muted: 107 101 88;
+  --line: 221 216 206;
+  --accent: 168 100 42;
+  --accent-ink: 92 54 15;
+  --critical: 179 38 30;
+}
+
+:root.dark {
+  --bg: 22 21 26;
+  --surface: 31 30 36;
+  --ink: 237 233 226;
+  --muted: 156 151 140;
+  --line: 52 50 58;
+  --accent: 220 154 92;
+  --accent-ink: 244 217 184;
+  --critical: 229 135 126;
+}
+
+html {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-bg text-ink antialiased;
+  font-variant-numeric: tabular-nums;
+}
