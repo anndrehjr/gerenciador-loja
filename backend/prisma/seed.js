@@ -1,22 +1,38 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { normalizePhone } from "../src/utils/phone.js";
 
 const prisma = new PrismaClient();
 
 const SERVICES = [
-  { name: "Corte feminino", priceCents: 8000, description: "Corte + finalização" },
-  { name: "Corte masculino", priceCents: 5000, description: "Corte na tesoura e/ou máquina" },
-  { name: "Corte infantil", priceCents: 4000, description: "Até 10 anos" },
-  { name: "Coloração", priceCents: 15000, description: "Coloração completa" },
-  { name: "Mechas / Luzes", priceCents: 18000, description: "Técnica de mechas com papel alumínio" },
-  { name: "Hidratação", priceCents: 7000, description: "Hidratação profunda com máscara" },
-  { name: "Escova", priceCents: 6000, description: "Escova modeladora" },
-  { name: "Penteado para festa", priceCents: 12000, description: "Penteado + finalização para eventos" },
-  { name: "Barba", priceCents: 3500, description: "Modelagem completa com toalha quente" },
-  { name: "Design de sobrancelha", priceCents: 2500, description: "Design com pinça e linha" },
-  { name: "Manicure", priceCents: 4000, description: "Cutilagem e esmaltação" },
-  { name: "Pedicure", priceCents: 4500, description: "Cutilagem e esmaltação dos pés" },
+  { name: "Corte feminino", priceCents: 8000, durationMinutes: 45, description: "Corte + finalização" },
+  { name: "Corte masculino", priceCents: 5000, durationMinutes: 30, description: "Corte na tesoura e/ou máquina" },
+  { name: "Corte infantil", priceCents: 4000, durationMinutes: 30, description: "Até 10 anos" },
+  { name: "Coloração", priceCents: 15000, durationMinutes: 120, description: "Coloração completa" },
+  { name: "Mechas / Luzes", priceCents: 18000, durationMinutes: 150, description: "Técnica de mechas com papel alumínio" },
+  { name: "Hidratação", priceCents: 7000, durationMinutes: 45, description: "Hidratação profunda com máscara" },
+  { name: "Escova", priceCents: 6000, durationMinutes: 40, description: "Escova modeladora" },
+  { name: "Penteado para festa", priceCents: 12000, durationMinutes: 60, description: "Penteado + finalização para eventos" },
+  { name: "Barba", priceCents: 3500, durationMinutes: 20, description: "Modelagem completa com toalha quente" },
+  { name: "Design de sobrancelha", priceCents: 2500, durationMinutes: 15, description: "Design com pinça e linha" },
+  { name: "Manicure", priceCents: 4000, durationMinutes: 40, description: "Cutilagem e esmaltação" },
+  { name: "Pedicure", priceCents: 4500, durationMinutes: 40, description: "Cutilagem e esmaltação dos pés" },
+];
+
+const PROFESSIONALS = [
+  {
+    name: "Camila Duarte",
+    specialty: "Coloração e mechas",
+    bio: "Especialista em coloração com 8 anos de experiência.",
+    workingHours: [1, 2, 3, 4, 5].map((weekday) => ({ weekday, startMinute: 9 * 60, endMinute: 18 * 60 })),
+  },
+  {
+    name: "Rodrigo Nunes",
+    specialty: "Cortes masculinos e barba",
+    bio: "Barbeiro clássico, especialista em navalha.",
+    workingHours: [2, 3, 4, 5, 6].map((weekday) => ({ weekday, startMinute: 10 * 60, endMinute: 19 * 60 })),
+  },
 ];
 
 const CLIENTS = [
@@ -60,7 +76,7 @@ const APPOINTMENT_PLAN = [
 function ensureService(data) {
   return prisma.service.upsert({
     where: { name: data.name },
-    update: {},
+    update: { durationMinutes: data.durationMinutes },
     create: data,
   });
 }
@@ -69,8 +85,21 @@ function ensureClient(data) {
   return prisma.client.upsert({
     where: { email: data.email },
     update: {},
-    create: data,
+    create: { ...data, phone: normalizePhone(data.phone) },
   });
+}
+
+async function ensureProfessional(data) {
+  let professional = await prisma.professional.findFirst({ where: { name: data.name } });
+  if (!professional) {
+    professional = await prisma.professional.create({
+      data: { name: data.name, specialty: data.specialty, bio: data.bio },
+    });
+    await prisma.workingHour.createMany({
+      data: data.workingHours.map((h) => ({ ...h, professionalId: professional.id })),
+    });
+  }
+  return professional;
 }
 
 function dateAt(dayOffset, hour) {
@@ -116,16 +145,24 @@ async function main() {
   }
   console.log(`Clientes prontos: ${clients.length} clientes.`);
 
+  const professionals = [];
+  for (const data of PROFESSIONALS) {
+    professionals.push(await ensureProfessional(data));
+  }
+  console.log(`Profissionais prontos: ${professionals.length} profissionais.`);
+
   const appointmentCount = await prisma.appointment.count();
   if (appointmentCount === 0) {
     for (let i = 0; i < APPOINTMENT_PLAN.length; i++) {
       const plan = APPOINTMENT_PLAN[i];
       const client = clients[i % clients.length];
       const service = services[(i * 3) % services.length];
+      const professional = professionals[i % professionals.length];
       await prisma.appointment.create({
         data: {
           clientId: client.id,
           serviceId: service.id,
+          professionalId: professional.id,
           date: dateAt(plan.dayOffset, plan.hour),
           status: plan.status,
           notes: plan.notes || null,

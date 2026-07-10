@@ -8,12 +8,13 @@ const STATUS_VALUES = ["AGENDADO", "CONFIRMADO", "CONCLUIDO", "CANCELADO"];
 const appointmentSchema = z.object({
   clientId: z.string().min(1),
   serviceId: z.string().min(1),
+  professionalId: z.string().min(1).optional().nullable(),
   date: z.coerce.date(),
   status: z.enum(STATUS_VALUES).optional(),
   notes: z.string().optional().nullable(),
 });
 
-const include = { client: true, service: true };
+const include = { client: true, service: true, professional: true };
 
 export async function listAppointments(req, res) {
   const { clientId, serviceId, status, from, to } = req.query;

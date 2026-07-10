@@ -5,7 +5,7 @@ import { formatMoney } from "../../lib/format.js";
 import Button from "../../components/ui/Button.jsx";
 import Input from "../../components/ui/Input.jsx";
 
-const EMPTY_FORM = { name: "", description: "", price: "", active: true };
+const EMPTY_FORM = { name: "", description: "", price: "", durationMinutes: "30", active: true };
 
 export default function Services() {
   const [services, setServices] = useState([]);
@@ -38,6 +38,7 @@ export default function Services() {
       name: service.name,
       description: service.description || "",
       price: (service.priceCents / 100).toString(),
+      durationMinutes: String(service.durationMinutes),
       active: service.active,
     });
     setError("");
@@ -52,10 +53,15 @@ export default function Services() {
       if (Number.isNaN(priceCents) || priceCents < 0) {
         throw new Error("Informe um preço válido.");
       }
+      const durationMinutes = parseInt(form.durationMinutes, 10);
+      if (Number.isNaN(durationMinutes) || durationMinutes <= 0) {
+        throw new Error("Informe uma duração válida.");
+      }
       const payload = {
         name: form.name,
         description: form.description || null,
         priceCents,
+        durationMinutes,
         active: form.active,
       };
       if (editingId) {
@@ -112,6 +118,15 @@ export default function Services() {
             value={form.price}
             onChange={(e) => setForm({ ...form, price: e.target.value })}
           />
+          <Input
+            id="durationMinutes"
+            label="Duração (min)"
+            type="number"
+            min="1"
+            required
+            value={form.durationMinutes}
+            onChange={(e) => setForm({ ...form, durationMinutes: e.target.value })}
+          />
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
@@ -156,6 +171,7 @@ export default function Services() {
                 )}
               </div>
               <div className="flex items-center gap-3">
+                <span className="text-sm text-muted">{service.durationMinutes} min</span>
                 <span className="tabular-nums text-sm font-medium">
                   {formatMoney(service.priceCents)}
                 </span>

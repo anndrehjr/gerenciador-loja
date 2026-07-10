@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Scissors, MapPin, Phone, Clock } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Scissors, MapPin, Phone, Clock, ArrowRight } from "lucide-react";
 import { api } from "../../lib/api.js";
 import { formatMoney } from "../../lib/format.js";
 import ThemeToggle from "../../components/ThemeToggle.jsx";
+import Button from "../../components/ui/Button.jsx";
 
 export default function SiteHome() {
   const [services, setServices] = useState([]);
@@ -46,6 +48,12 @@ export default function SiteHome() {
           <p className="relative mt-4 max-w-xl text-lg text-muted">
             Cortes, coloração e tratamentos capilares num ambiente pensado para você.
           </p>
+          <Link to="/agendar" className="relative mt-8 inline-block">
+            <Button>
+              Agendar horário
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
         </section>
 
         <section id="servicos" className="border-t border-line py-16">
@@ -73,8 +81,15 @@ export default function SiteHome() {
                     <div className="mt-0.5 text-sm text-muted">{service.description}</div>
                   )}
                 </div>
-                <div className="whitespace-nowrap font-medium tabular-nums text-accent-ink">
-                  {formatMoney(service.priceCents)}
+                <div className="flex shrink-0 items-center gap-4">
+                  <span className="whitespace-nowrap font-medium tabular-nums text-accent-ink">
+                    {formatMoney(service.priceCents)}
+                  </span>
+                  <Link to="/agendar">
+                    <Button variant="ghost" className="px-3 py-1.5 text-xs">
+                      Agendar
+                    </Button>
+                  </Link>
                 </div>
               </li>
             ))}

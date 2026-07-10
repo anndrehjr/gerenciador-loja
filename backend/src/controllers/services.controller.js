@@ -6,6 +6,7 @@ const serviceSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional().nullable(),
   priceCents: z.number().int().nonnegative(),
+  durationMinutes: z.number().int().positive().optional(),
   active: z.boolean().optional(),
 });
 
