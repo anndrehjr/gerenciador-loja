@@ -28,10 +28,14 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-bg px-6 text-ink">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 flex flex-col items-center gap-2 text-center">
-          <Scissors className="h-6 w-6 text-accent" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-bg px-6 text-ink">
+      <div className="pointer-events-none absolute left-1/2 top-0 h-96 w-96 -translate-x-1/2 rounded-full bg-gradient-to-br from-violet-500/20 to-accent-blue/10 blur-3xl" />
+
+      <div className="relative w-full max-w-sm rounded-3xl border border-line bg-surface p-8 shadow-soft">
+        <div className="mb-8 flex flex-col items-center gap-3 text-center">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-accent-blue">
+            <Scissors className="h-5 w-5 text-white" />
+          </div>
           <h1 className="text-lg font-semibold">Entrar</h1>
           <p className="text-sm text-muted">Acesso restrito à administração do salão.</p>
         </div>

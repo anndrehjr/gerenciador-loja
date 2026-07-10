@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Users, Scissors, CalendarClock } from "lucide-react";
 import { api } from "../../lib/api.js";
 import { formatDateTime, STATUS_LABELS } from "../../lib/format.js";
 import StatTile from "../../components/ui/StatTile.jsx";
@@ -30,14 +31,19 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <StatTile label="Clientes" value={clients.length} />
-        <StatTile label="Serviços" value={services.length} />
-        <StatTile label="Agendamentos" value={appointments.length} />
+      <div>
+        <h1 className="text-lg font-semibold">Painel</h1>
+        <p className="mt-1 text-sm text-muted">Visão geral do seu salão.</p>
       </div>
 
-      <div>
-        <div className="flex items-center justify-between">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <StatTile icon={Users} label="Clientes" value={clients.length} />
+        <StatTile icon={Scissors} label="Serviços" value={services.length} />
+        <StatTile icon={CalendarClock} label="Agendamentos" value={appointments.length} />
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-line bg-surface">
+        <div className="flex items-center justify-between px-5 py-4">
           <h2 className="text-sm font-semibold text-muted">Próximos agendamentos</h2>
           <Link to="/appointments" className="text-sm text-accent-ink hover:underline">
             Ver todos
@@ -45,11 +51,14 @@ export default function Dashboard() {
         </div>
 
         {upcoming.length === 0 ? (
-          <p className="mt-4 text-sm text-muted">Nenhum agendamento pendente.</p>
+          <p className="px-5 pb-5 text-sm text-muted">Nenhum agendamento pendente.</p>
         ) : (
-          <ul className="mt-4 divide-y divide-line rounded-lg border border-line">
+          <ul className="divide-y divide-line">
             {upcoming.map((a) => (
-              <li key={a.id} className="flex items-center justify-between px-4 py-3 text-sm">
+              <li
+                key={a.id}
+                className="flex items-center justify-between gap-4 px-5 py-3 text-sm transition duration-200 hover:bg-hover"
+              >
                 <div>
                   <div className="font-medium">{a.client.name}</div>
                   <div className="text-muted">{a.service.name}</div>

@@ -7,7 +7,7 @@ export default function ThemeToggle() {
     <button
       onClick={toggle}
       aria-label={dark ? "Ativar tema claro" : "Ativar tema escuro"}
-      className="rounded-full p-2 text-muted hover:bg-surface hover:text-ink"
+      className="rounded-lg p-2 text-muted transition duration-200 hover:bg-hover hover:text-ink"
     >
       {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </button>

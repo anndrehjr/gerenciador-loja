@@ -7,7 +7,7 @@ export default function Settings() {
     <div className="flex flex-col gap-6">
       <h1 className="text-lg font-semibold">Configurações</h1>
 
-      <div className="max-w-md rounded-lg border border-line bg-surface p-5">
+      <div className="max-w-md rounded-2xl border border-line bg-surface p-6 shadow-soft">
         <h2 className="text-sm font-semibold text-muted">Conta</h2>
         <dl className="mt-3 space-y-2 text-sm">
           <div className="flex justify-between">

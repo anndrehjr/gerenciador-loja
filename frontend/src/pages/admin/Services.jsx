@@ -89,7 +89,7 @@ export default function Services() {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-5 sm:flex-row sm:items-end sm:flex-wrap"
+          className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-6 shadow-soft sm:flex-row sm:items-end sm:flex-wrap"
         >
           <Input
             id="name"
@@ -136,14 +136,17 @@ export default function Services() {
       ) : services.length === 0 ? (
         <p className="text-sm text-muted">Nenhum serviço cadastrado.</p>
       ) : (
-        <ul className="divide-y divide-line rounded-lg border border-line">
+        <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
           {services.map((service) => (
-            <li key={service.id} className="flex items-center justify-between gap-4 px-4 py-3">
+            <li
+              key={service.id}
+              className="flex items-center justify-between gap-4 px-5 py-3.5 transition duration-200 hover:bg-hover"
+            >
               <div>
                 <div className="flex items-center gap-2 text-sm font-medium">
                   {service.name}
                   {!service.active && (
-                    <span className="rounded-full bg-line px-2 py-0.5 text-xs text-muted">
+                    <span className="rounded-full bg-hover px-2 py-0.5 text-xs text-muted">
                       Inativo
                     </span>
                   )}
@@ -158,14 +161,14 @@ export default function Services() {
                 </span>
                 <button
                   onClick={() => startEdit(service)}
-                  className="rounded-md p-2 text-muted hover:bg-bg hover:text-ink"
+                  className="rounded-lg p-2 text-muted transition duration-200 hover:bg-bg hover:text-ink"
                   aria-label="Editar"
                 >
                   <Pencil className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(service.id)}
-                  className="rounded-md p-2 text-muted hover:bg-bg hover:text-critical"
+                  className="rounded-lg p-2 text-muted transition duration-200 hover:bg-bg hover:text-critical"
                   aria-label="Remover"
                 >
                   <Trash2 className="h-4 w-4" />

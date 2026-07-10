@@ -86,7 +86,7 @@ export default function Clients() {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-5 sm:flex-row sm:items-end sm:flex-wrap"
+          className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-6 shadow-soft sm:flex-row sm:items-end sm:flex-wrap"
         >
           <Input
             id="name"
@@ -124,9 +124,12 @@ export default function Clients() {
       ) : filtered.length === 0 ? (
         <p className="text-sm text-muted">Nenhum cliente encontrado.</p>
       ) : (
-        <ul className="divide-y divide-line rounded-lg border border-line">
+        <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
           {filtered.map((client) => (
-            <li key={client.id} className="flex items-center justify-between gap-4 px-4 py-3">
+            <li
+              key={client.id}
+              className="flex items-center justify-between gap-4 px-5 py-3.5 transition duration-200 hover:bg-hover"
+            >
               <div>
                 <div className="text-sm font-medium">{client.name}</div>
                 <div className="text-sm text-muted">
@@ -136,14 +139,14 @@ export default function Clients() {
               <div className="flex gap-1">
                 <button
                   onClick={() => startEdit(client)}
-                  className="rounded-md p-2 text-muted hover:bg-bg hover:text-ink"
+                  className="rounded-lg p-2 text-muted transition duration-200 hover:bg-bg hover:text-ink"
                   aria-label="Editar"
                 >
                   <Pencil className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(client.id)}
-                  className="rounded-md p-2 text-muted hover:bg-bg hover:text-critical"
+                  className="rounded-lg p-2 text-muted transition duration-200 hover:bg-bg hover:text-critical"
                   aria-label="Remover"
                 >
                   <Trash2 className="h-4 w-4" />
