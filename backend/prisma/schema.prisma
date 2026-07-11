@@ -53,11 +53,13 @@ model Professional {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   workingHours WorkingHour[]
+  timeOff      TimeOff[]
   appointments Appointment[]
 }
 
-// Uma janela de trabalho contínua por dia da semana (0=domingo..6=sábado).
-// Sem entrada num dia = profissional não atende naquele dia.
+// Uma janela de trabalho por dia da semana (0=domingo..6=sábado). Um mesmo
+// dia pode ter mais de uma janela (turno dividido, ex.: manhã e tarde).
+// Sem nenhuma janela num dia = profissional não atende naquele dia.
 model WorkingHour {
   id             String   @id @default(cuid())
   weekday        Int
@@ -69,7 +71,22 @@ model WorkingHour {
   professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
   professionalId String
 
-  @@unique([professionalId, weekday])
+  @@index([professionalId, weekday])
+}
+
+// Período de férias/folga de um profissional (datas, inclusive nos dois
+// extremos). Sobrepõe o WorkingHour normal — o dia fica indisponível.
+model TimeOff {
+  id             String   @id @default(cuid())
+  startDate      DateTime
+  endDate        DateTime
+  reason         String?
+  createdAt      DateTime @default(now())
+
+  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  professionalId String
+
+  @@index([professionalId])
 }
 
 enum AppointmentStatus {

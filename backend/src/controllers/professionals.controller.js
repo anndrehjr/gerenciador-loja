@@ -16,16 +16,47 @@ const workingHourSchema = z.object({
   endMinute: z.number().int().min(1).max(1440),
 });
 
+function hasOverlapWithinDay(hours) {
+  const byWeekday = new Map();
+  for (const h of hours) {
+    const list = byWeekday.get(h.weekday) || [];
+    list.push(h);
+    byWeekday.set(h.weekday, list);
+  }
+  for (const list of byWeekday.values()) {
+    const sorted = [...list].sort((a, b) => a.startMinute - b.startMinute);
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i].startMinute < sorted[i - 1].endMinute) return true;
+    }
+  }
+  return false;
+}
+
+// Um dia pode ter mais de uma janela (turno dividido, ex.: manhã e tarde),
+// desde que não se sobreponham.
 const workingHoursSchema = z
   .array(workingHourSchema)
   .refine((hours) => hours.every((h) => h.endMinute > h.startMinute), {
     message: "O horário final deve ser depois do horário inicial.",
   })
-  .refine((hours) => new Set(hours.map((h) => h.weekday)).size === hours.length, {
-    message: "Cada dia da semana pode ter apenas uma janela de horário.",
+  .refine((hours) => !hasOverlapWithinDay(hours), {
+    message: "As janelas de horário no mesmo dia não podem se sobrepor.",
   });
 
-const include = { workingHours: { orderBy: { weekday: "asc" } } };
+const timeOffSchema = z
+  .object({
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date(),
+    reason: z.string().optional().nullable(),
+  })
+  .refine((d) => d.endDate >= d.startDate, {
+    message: "A data final deve ser igual ou depois da data inicial.",
+  });
+
+const include = {
+  workingHours: { orderBy: { weekday: "asc" } },
+  timeOff: { orderBy: { startDate: "asc" } },
+};
 
 export async function listProfessionals(req, res) {
   const onlyActive = req.query.active === "true";
@@ -83,4 +114,25 @@ export async function replaceWorkingHours(req, res) {
 
   const updated = await prisma.professional.findUnique({ where: { id: req.params.id }, include });
   res.json(updated);
+}
+
+export async function createTimeOff(req, res) {
+  const data = timeOffSchema.parse(req.body);
+
+  const professional = await prisma.professional.findUnique({ where: { id: req.params.id } });
+  if (!professional) throw new HttpError(404, "Profissional não encontrado.");
+
+  const timeOff = await prisma.timeOff.create({
+    data: { ...data, professionalId: req.params.id },
+  });
+  res.status(201).json(timeOff);
+}
+
+export async function deleteTimeOff(req, res) {
+  await prisma.timeOff
+    .delete({ where: { id: req.params.timeOffId } })
+    .catch(() => {
+      throw new HttpError(404, "Registro não encontrado.");
+    });
+  res.status(204).send();
 }

@@ -157,21 +157,42 @@ function PhoneStep({ onNext }) {
   );
 }
 
+function RetryNotice({ message, onRetry }) {
+  return (
+    <div className="flex flex-col items-start gap-3 rounded-2xl border border-line bg-surface p-5 text-sm text-muted">
+      <span>{message}</span>
+      <Button variant="ghost" onClick={onRetry}>
+        Tentar novamente
+      </Button>
+    </div>
+  );
+}
+
 function ServiceStep({ onNext, onBack }) {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    setLoading(true);
+    setLoadError(false);
     api
       .get("/public/services")
       .then(setServices)
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
-  }, []);
+  }, [reloadKey]);
 
   return (
     <StepShell title="Escolha o serviço" subtitle="Selecione o que você deseja agendar.">
       {loading ? (
         <p className="text-sm text-muted">Carregando serviços…</p>
+      ) : loadError ? (
+        <RetryNotice
+          message="Não foi possível carregar os serviços agora."
+          onRetry={() => setReloadKey((k) => k + 1)}
+        />
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {services.map((service) => (
@@ -206,18 +227,28 @@ function ServiceStep({ onNext, onBack }) {
 function ProfessionalStep({ onNext, onBack }) {
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    setLoading(true);
+    setLoadError(false);
     api
       .get("/public/professionals")
       .then(setProfessionals)
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
-  }, []);
+  }, [reloadKey]);
 
   return (
     <StepShell title="Escolha o profissional" subtitle="Quem vai te atender?">
       {loading ? (
         <p className="text-sm text-muted">Carregando profissionais…</p>
+      ) : loadError ? (
+        <RetryNotice
+          message="Não foi possível carregar os profissionais agora."
+          onRetry={() => setReloadKey((k) => k + 1)}
+        />
       ) : professionals.length === 0 ? (
         <p className="text-sm text-muted">Nenhum profissional disponível no momento.</p>
       ) : (
@@ -259,10 +290,14 @@ function formatDayLabel(dateStr) {
 function DateTimeStep({ professional, service, onNext, onBack }) {
   const [availability, setAvailability] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
 
   useEffect(() => {
+    setLoading(true);
+    setLoadError(false);
     api
       .get(`/public/professionals/${professional.id}/availability?serviceId=${service.id}&days=21`)
       .then((data) => {
@@ -270,8 +305,9 @@ function DateTimeStep({ professional, service, onNext, onBack }) {
         const firstWithSlots = data.find((d) => d.slots.length > 0);
         if (firstWithSlots) setSelectedDate(firstWithSlots.date);
       })
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
-  }, [professional.id, service.id]);
+  }, [professional.id, service.id, reloadKey]);
 
   const selectedDay = useMemo(
     () => availability.find((d) => d.date === selectedDate),
@@ -287,6 +323,21 @@ function DateTimeStep({ professional, service, onNext, onBack }) {
     return (
       <StepShell title="Escolha data e horário">
         <p className="text-sm text-muted">Carregando disponibilidade…</p>
+      </StepShell>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <StepShell title="Escolha data e horário">
+        <RetryNotice
+          message="Não foi possível carregar os horários disponíveis agora."
+          onRetry={() => setReloadKey((k) => k + 1)}
+        />
+        <Button variant="ghost" onClick={onBack} className="self-start">
+          <ArrowLeft className="h-4 w-4" />
+          Voltar
+        </Button>
       </StepShell>
     );
   }
