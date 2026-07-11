@@ -15,32 +15,81 @@ function formatDate(date) {
   return `${y}-${m}-${d}`;
 }
 
-function minutesToLabel(minutes) {
+export function minutesToLabel(minutes) {
   const h = String(Math.floor(minutes / 60)).padStart(2, "0");
   const m = String(minutes % 60).padStart(2, "0");
   return `${h}:${m}`;
 }
 
+// --- Funções puras (sem banco), fáceis de testar isoladamente ---
+
+// Dado o(s) período(s) de trabalho de um dia (pode ser mais de um, em caso de
+// turno dividido), os intervalos já ocupados e a duração do serviço, devolve
+// os horários livres (em "HH:mm") respeitando o grid de 15 em 15 minutos.
+export function computeFreeSlots({
+  windows,
+  busyRanges = [],
+  durationMinutes,
+  stepMinutes = SLOT_STEP_MINUTES,
+  minStartMinute = 0,
+}) {
+  const slots = new Set();
+
+  for (const window of windows) {
+    for (
+      let minute = window.startMinute;
+      minute + durationMinutes <= window.endMinute;
+      minute += stepMinutes
+    ) {
+      if (minute < minStartMinute) continue;
+
+      const slotEnd = minute + durationMinutes;
+      const overlapsBusy = busyRanges.some(([busyStart, busyEnd]) => minute < busyEnd && slotEnd > busyStart);
+      if (!overlapsBusy) slots.add(minutesToLabel(minute));
+    }
+  }
+
+  return [...slots].sort();
+}
+
+// Confere se um intervalo [startMinute, endMinute) cabe inteiramente dentro
+// de alguma das janelas de trabalho do dia.
+export function isWithinWindows(startMinute, endMinute, windows) {
+  return windows.some((w) => startMinute >= w.startMinute && endMinute <= w.endMinute);
+}
+
+// --- Funções que consultam o banco (aceitam `client` para rodar dentro de uma transação) ---
+
 // Gera, para os próximos `days` dias, os horários livres de um profissional
-// para um serviço (considerando a duração do serviço e agendamentos já
-// existentes). Um dia sem WorkingHour cadastrada é considerado fechado.
-export async function getAvailabilityRange({ professionalId, serviceId, days = 14 }) {
-  const service = await prisma.service.findUnique({ where: { id: serviceId } });
+// para um serviço (considerando janelas de trabalho — inclusive turno
+// dividido —, férias/folgas e agendamentos já existentes).
+export async function getAvailabilityRange({ professionalId, serviceId, days = 14 }, client = prisma) {
+  const service = await client.service.findUnique({ where: { id: serviceId } });
   if (!service || !service.active) return null;
 
-  const professional = await prisma.professional.findUnique({
+  const professional = await client.professional.findUnique({
     where: { id: professionalId },
-    include: { workingHours: true },
+    include: { workingHours: true, timeOff: true },
   });
   if (!professional || !professional.active) return null;
 
-  const workingByWeekday = new Map(professional.workingHours.map((h) => [h.weekday, h]));
+  const windowsByWeekday = new Map();
+  for (const wh of professional.workingHours) {
+    const list = windowsByWeekday.get(wh.weekday) || [];
+    list.push({ startMinute: wh.startMinute, endMinute: wh.endMinute });
+    windowsByWeekday.set(wh.weekday, list);
+  }
+
+  const timeOffRanges = professional.timeOff.map((t) => ({
+    start: dateOnly(t.startDate),
+    end: dateOnly(t.endDate),
+  }));
 
   const startDate = dateOnly(new Date());
   const endDate = new Date(startDate);
   endDate.setDate(endDate.getDate() + days);
 
-  const existingAppointments = await prisma.appointment.findMany({
+  const existingAppointments = await client.appointment.findMany({
     where: {
       professionalId,
       status: { not: "CANCELADO" },
@@ -50,14 +99,17 @@ export async function getAvailabilityRange({ professionalId, serviceId, days = 1
   });
 
   const now = new Date();
+  const todayStart = dateOnly(now);
   const result = [];
 
   for (let i = 0; i < days; i++) {
     const day = new Date(startDate);
     day.setDate(day.getDate() + i);
 
-    const working = workingByWeekday.get(day.getDay());
-    if (!working) {
+    const windows = windowsByWeekday.get(day.getDay()) || [];
+    const blocked = timeOffRanges.some((r) => day >= r.start && day <= r.end);
+
+    if (windows.length === 0 || blocked) {
       result.push({ date: formatDate(day), slots: [] });
       continue;
     }
@@ -69,22 +121,14 @@ export async function getAvailabilityRange({ professionalId, serviceId, days = 1
         return [start, start + a.service.durationMinutes];
       });
 
-    const slots = [];
-    for (
-      let minute = working.startMinute;
-      minute + service.durationMinutes <= working.endMinute;
-      minute += SLOT_STEP_MINUTES
-    ) {
-      const slotEnd = minute + service.durationMinutes;
-      const overlaps = busyRanges.some(([busyStart, busyEnd]) => minute < busyEnd && slotEnd > busyStart);
-      if (overlaps) continue;
+    const minStartMinute = day.getTime() === todayStart.getTime() ? now.getHours() * 60 + now.getMinutes() + 1 : 0;
 
-      const slotDate = new Date(day);
-      slotDate.setMinutes(minute);
-      if (slotDate <= now) continue;
-
-      slots.push(minutesToLabel(minute));
-    }
+    const slots = computeFreeSlots({
+      windows,
+      busyRanges,
+      durationMinutes: service.durationMinutes,
+      minStartMinute,
+    });
 
     result.push({ date: formatDate(day), slots });
   }
@@ -92,34 +136,40 @@ export async function getAvailabilityRange({ professionalId, serviceId, days = 1
   return result;
 }
 
-// Confere se um horário específico ainda está livre (usado antes de criar o
-// agendamento público, para evitar condição de corrida entre dois clientes).
-export async function isSlotFree({ professionalId, serviceId, date }) {
-  const service = await prisma.service.findUnique({ where: { id: serviceId } });
+// Confere se um horário específico ainda está livre. Recebe opcionalmente um
+// `client` de transação, para ser chamada dentro do mesmo `$transaction` que
+// cria o agendamento (evita condição de corrida entre duas reservas).
+export async function isSlotFree({ professionalId, serviceId, date }, client = prisma) {
+  const service = await client.service.findUnique({ where: { id: serviceId } });
   if (!service) return false;
 
   const slotStart = new Date(date);
-  const slotEnd = new Date(slotStart.getTime() + service.durationMinutes * 60000);
+  if (slotStart <= new Date()) return false;
 
   const dayStart = dateOnly(slotStart);
   const dayEnd = new Date(dayStart);
   dayEnd.setDate(dayEnd.getDate() + 1);
 
-  const professional = await prisma.professional.findUnique({
+  const professional = await client.professional.findUnique({
     where: { id: professionalId },
-    include: { workingHours: true },
+    include: { workingHours: true, timeOff: true },
   });
   if (!professional || !professional.active) return false;
 
-  const working = professional.workingHours.find((h) => h.weekday === slotStart.getDay());
-  if (!working) return false;
+  const blocked = professional.timeOff.some(
+    (t) => dayStart >= dateOnly(t.startDate) && dayStart <= dateOnly(t.endDate)
+  );
+  if (blocked) return false;
+
+  const windows = professional.workingHours
+    .filter((h) => h.weekday === slotStart.getDay())
+    .map((h) => ({ startMinute: h.startMinute, endMinute: h.endMinute }));
 
   const startMinute = slotStart.getHours() * 60 + slotStart.getMinutes();
   const endMinute = startMinute + service.durationMinutes;
-  if (startMinute < working.startMinute || endMinute > working.endMinute) return false;
-  if (slotStart <= new Date()) return false;
+  if (!isWithinWindows(startMinute, endMinute, windows)) return false;
 
-  const existingAppointments = await prisma.appointment.findMany({
+  const existingAppointments = await client.appointment.findMany({
     where: {
       professionalId,
       status: { not: "CANCELADO" },

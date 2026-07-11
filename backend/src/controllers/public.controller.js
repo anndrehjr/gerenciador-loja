@@ -1,9 +1,12 @@
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma.js";
 import { HttpError } from "../middleware/errorHandler.js";
 import { normalizePhone } from "../utils/phone.js";
 import { getAvailabilityRange, isSlotFree } from "../lib/availability.js";
 import { sendAppointmentConfirmation } from "../lib/whatsapp.js";
+
+const SLOT_TAKEN_MESSAGE = "Esse horário acabou de ficar indisponível. Escolha outro.";
 
 export async function listPublicServices(req, res) {
   const services = await prisma.service.findMany({
@@ -122,19 +125,30 @@ export async function createPublicAppointment(req, res) {
   if (!service || !service.active) throw new HttpError(404, "Serviço indisponível.");
   if (!professional || !professional.active) throw new HttpError(404, "Profissional indisponível.");
 
-  const free = await isSlotFree({
-    professionalId: data.professionalId,
-    serviceId: data.serviceId,
-    date: data.date,
-  });
-  if (!free) {
-    throw new HttpError(409, "Esse horário acabou de ficar indisponível. Escolha outro.");
-  }
+  // Checagem + criação rodam na mesma transação serializable: se dois
+  // clientes tentarem reservar o mesmo horário ao mesmo tempo, o Postgres
+  // aborta uma das transações em vez de deixar as duas passarem.
+  const appointment = await prisma
+    .$transaction(
+      async (tx) => {
+        const free = await isSlotFree(
+          { professionalId: data.professionalId, serviceId: data.serviceId, date: data.date },
+          tx
+        );
+        if (!free) throw new HttpError(409, SLOT_TAKEN_MESSAGE);
 
-  const appointment = await prisma.appointment.create({
-    data,
-    include: { client: true, service: true, professional: true },
-  });
+        return tx.appointment.create({
+          data,
+          include: { client: true, service: true, professional: true },
+        });
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+    )
+    .catch((err) => {
+      if (err instanceof HttpError) throw err;
+      if (err.code === "P2034") throw new HttpError(409, SLOT_TAKEN_MESSAGE);
+      throw err;
+    });
 
   res.status(201).json(appointment);
   sendAppointmentConfirmation(appointment).catch(() => {});
