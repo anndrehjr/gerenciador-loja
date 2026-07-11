@@ -16,9 +16,12 @@ import { notFoundHandler, errorHandler } from "./middleware/errorHandler.js";
 
 export const app = express();
 
-// api só é alcançável pelo nginx do próprio container "app" — confiar na
-// cadeia de X-Forwarded-For pra usar o IP real do visitante no rate limit.
-app.set("trust proxy", true);
+// Cadeia real até a API: Cloudflare (proxy) -> nginx-proxy-manager -> nginx
+// do container "app" -> aqui. Confiar em "true" aceitaria qualquer valor que
+// o próprio visitante mandasse em X-Forwarded-For, permitindo forjar o IP e
+// contornar o rate limit (login e agendamento público). Com um número fixo
+// de saltos, o Express ignora qualquer coisa além dos 3 proxies conhecidos.
+app.set("trust proxy", 3);
 
 app.use(helmet());
 app.use(
