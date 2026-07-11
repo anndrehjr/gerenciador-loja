@@ -4,7 +4,12 @@ import { HttpError } from "../middleware/errorHandler.js";
 
 const professionalSchema = z.object({
   name: z.string().min(1),
-  photoUrl: z.string().url().optional().nullable(),
+  photoUrl: z
+    .string()
+    .url()
+    .refine((url) => /^https?:\/\//i.test(url), "A URL da foto precisa ser http:// ou https://")
+    .optional()
+    .nullable(),
   specialty: z.string().optional().nullable(),
   bio: z.string().optional().nullable(),
   active: z.boolean().optional(),
