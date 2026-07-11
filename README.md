@@ -10,10 +10,11 @@ Monorepo com duas aplicações independentes:
 
 ```
 gerenciador-loja/
-├── frontend/   # SPA em React (Vite) — site público + painel administrativo
-├── backend/    # API REST em Node/Express + Prisma
-├── deploy/     # docker-compose.yml de referência usado em produção
-└── scripts/    # script de deploy pro servidor
+├── frontend/          # SPA em React (Vite) — site público + painel administrativo
+│   └── android/       # app Android (Capacitor) que embrulha o site público
+├── backend/           # API REST em Node/Express + Prisma
+├── deploy/            # docker-compose.yml de referência usado em produção
+└── scripts/           # script de deploy pro servidor
 ```
 
 ## Como funciona
@@ -75,3 +76,42 @@ O deploy roda em containers Docker num VPS, com banco, API e frontend isolados e
 ```
 
 `deploy/docker-compose.yml` e `deploy/.env.example` documentam a configuração usada em produção.
+
+## App Android
+
+`frontend/android/` é um app Android gerado com [Capacitor](https://capacitorjs.com). Ele não empacota o site — o `frontend/capacitor.config.json` aponta `server.url` direto para `https://salao.andre-aguiar-jr.com.br`, então o app é uma casca nativa que sempre mostra a versão publicada do site (atualizar o site atualiza o app sozinho, sem precisar recompilar nada). Abre direto na página pública de agendamento, sem exigir login.
+
+Ícone e splash screen ficam em `frontend/resources/` (gerados com a identidade visual do produto — gradiente roxo/azul + tesoura) e foram aplicados com `npx capacitor-assets generate --android`.
+
+### Pré-requisitos
+
+- [Android Studio](https://developer.android.com/studio) instalado (inclui o SDK do Android).
+- Variáveis de ambiente `ANDROID_HOME` (pasta do SDK, ex. `%LOCALAPPDATA%\Android\Sdk`) e `JAVA_HOME` (JDK que vem junto do Android Studio, ex. `C:\Program Files\Android\Android Studio\jbr`).
+
+### Rodar num emulador ou celular
+
+```bash
+cd frontend/android
+./gradlew.bat installDebug     # compila e instala no emulador/dispositivo conectado (adb devices)
+```
+
+Ou abra a pasta `frontend/android` direto no Android Studio e clique em Run (▶ / Shift+F10).
+
+### Gerar novo ícone/splash (se mudar a identidade visual)
+
+```bash
+cd frontend
+npx capacitor-assets generate --android
+```
+
+Substitua antes `resources/icon.png` (1024×1024) e `resources/splash.png` / `splash-dark.png` (2732×2732).
+
+### Publicar na Play Store (ainda não feito)
+
+Passos que faltam, fora do escopo de código:
+1. Criar conta de desenvolvedor no [Google Play Console](https://play.google.com/console) (taxa única de US$25).
+2. Gerar uma chave de assinatura (`keytool` ou pelo próprio Android Studio: **Build → Generate Signed Bundle/APK**) e guardá-la em local seguro — perder essa chave impede atualizar o app depois.
+3. Gerar um **Android App Bundle** assinado (`./gradlew bundleRelease`) em vez do APK de debug.
+4. Preencher a ficha da loja (nome, descrição, capturas de tela, política de privacidade) e enviar para revisão.
+
+iOS não foi configurado: exige um Mac com Xcode (ou um serviço de build na nuvem) e conta de desenvolvedor Apple (US$99/ano).
