@@ -30,34 +30,17 @@ export async function lookupClientByPhone(req, res) {
   const phone = normalizePhone(String(req.query.phone || ""));
   if (!phone) throw new HttpError(400, "Informe um telefone.");
 
-  const client = await prisma.client.findUnique({
-    where: { phone },
-    include: {
-      appointments: {
-        orderBy: { date: "desc" },
-        take: 1,
-        include: { service: true, professional: true },
-      },
-    },
-  });
+  // Devolve só o mínimo pra continuar o agendamento (id do cliente) — nunca
+  // nome, e-mail ou histórico, já que quem pergunta ainda não provou ser o
+  // dono do número. Isso evita que o telefone sozinho vire uma forma de
+  // varrer/enumerar dados de clientes reais do salão.
+  const client = await prisma.client.findUnique({ where: { phone }, select: { id: true } });
 
   if (!client) {
     return res.json({ found: false });
   }
 
-  const last = client.appointments[0];
-  res.json({
-    found: true,
-    client: { id: client.id, name: client.name, phone: client.phone, email: client.email },
-    lastAppointment: last
-      ? {
-          serviceId: last.serviceId,
-          serviceName: last.service.name,
-          professionalId: last.professionalId,
-          professionalName: last.professional?.name ?? null,
-        }
-      : null,
-  });
+  res.json({ found: true, clientId: client.id });
 }
 
 const newClientSchema = z.object({
@@ -72,9 +55,9 @@ const newClientSchema = z.object({
 export async function createPublicClient(req, res) {
   const data = newClientSchema.parse(req.body);
 
-  const existing = await prisma.client.findUnique({ where: { phone: data.phone } });
+  const existing = await prisma.client.findUnique({ where: { phone: data.phone }, select: { id: true } });
   if (existing) {
-    return res.status(200).json(existing);
+    return res.status(200).json({ id: existing.id });
   }
 
   const client = await prisma.client.create({ data }).catch((err) => {

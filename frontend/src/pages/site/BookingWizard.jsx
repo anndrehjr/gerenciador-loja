@@ -46,7 +46,7 @@ function StepShell({ title, subtitle, children }) {
 function PhoneStep({ onNext }) {
   const [phone, setPhone] = useState("");
   const [status, setStatus] = useState("idle");
-  const [found, setFound] = useState(null);
+  const [clientId, setClientId] = useState(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -57,7 +57,6 @@ function PhoneStep({ onNext }) {
   useEffect(() => {
     if (digits.length < 10) {
       setStatus("idle");
-      setFound(null);
       return;
     }
     setStatus("checking");
@@ -65,17 +64,28 @@ function PhoneStep({ onNext }) {
       api
         .get(`/public/clients/lookup?phone=${encodeURIComponent(digits)}`)
         .then((data) => {
-          setFound(data.found ? data : null);
-          setStatus(data.found ? "found" : "new");
+          if (data.found) {
+            setClientId(data.clientId);
+            setStatus("found");
+          } else {
+            setStatus("new");
+          }
         })
         .catch(() => setStatus("idle"));
     }, 500);
     return () => clearTimeout(timeout);
   }, [digits]);
 
-  function handleUseExisting() {
-    onNext({ client: found.client, lastAppointment: found.lastAppointment });
-  }
+  // Telefone já cadastrado: não exibimos nome/e-mail/histórico de quem quer
+  // que seja (quem está digitando ainda não provou ser o dono do número) —
+  // só avançamos direto pra escolha do serviço.
+  useEffect(() => {
+    if (status !== "found" || !clientId) return;
+    const timeout = setTimeout(() => {
+      onNext({ client: { id: clientId }, phone: digits });
+    }, 600);
+    return () => clearTimeout(timeout);
+  }, [status, clientId]);
 
   async function handleCreateClient(e) {
     e.preventDefault();
@@ -91,7 +101,7 @@ function PhoneStep({ onNext }) {
         phone: digits,
         email: email || null,
       });
-      onNext({ client, lastAppointment: null });
+      onNext({ client: { id: client.id }, phone: digits });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -113,22 +123,10 @@ function PhoneStep({ onNext }) {
 
       {status === "checking" && <p className="text-sm text-muted">Verificando…</p>}
 
-      {status === "found" && found && (
-        <div className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 shadow-soft">
-          <div>
-            <div className="text-sm text-muted">Bem-vindo(a) de volta,</div>
-            <div className="text-lg font-semibold">{found.client.name}</div>
-          </div>
-          {found.lastAppointment && (
-            <p className="text-sm text-muted">
-              Última vez: {found.lastAppointment.serviceName}
-              {found.lastAppointment.professionalName ? ` com ${found.lastAppointment.professionalName}` : ""}
-            </p>
-          )}
-          <Button onClick={handleUseExisting} className="self-start">
-            Continuar
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+      {status === "found" && (
+        <div className="flex items-center gap-2 rounded-2xl border border-line bg-surface p-5 text-sm text-muted shadow-soft">
+          <Check className="h-4 w-4 text-accent-ink" />
+          Telefone reconhecido — continuando…
         </div>
       )}
 
@@ -421,8 +419,15 @@ function DateTimeStep({ professional, service, onNext, onBack }) {
   );
 }
 
+function formatPhoneDisplay(digits) {
+  if (!digits) return "";
+  if (digits.length === 11) return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  if (digits.length === 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return digits;
+}
+
 function ConfirmStep({ booking, onConfirm, onBack, submitting, error }) {
-  const { client, service, professional, date, time } = booking;
+  const { phone, service, professional, date, time } = booking;
   const dateLabel = new Date(`${date}T00:00:00`).toLocaleDateString("pt-BR", {
     weekday: "long",
     day: "2-digit",
@@ -432,7 +437,7 @@ function ConfirmStep({ booking, onConfirm, onBack, submitting, error }) {
   return (
     <StepShell title="Confirme seu agendamento">
       <div className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-6 shadow-soft">
-        <SummaryRow label="Cliente" value={client.name} />
+        <SummaryRow label="Telefone" value={formatPhoneDisplay(phone)} />
         <SummaryRow label="Serviço" value={service.name} />
         <SummaryRow label="Profissional" value={professional.name} />
         <SummaryRow label="Data" value={`${dateLabel} às ${time}`} />
