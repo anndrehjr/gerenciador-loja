@@ -1,0 +1,9 @@
+{
+  "appId": "br.com.andreaguiarjr.salao",
+  "appName": "Salão",
+  "webDir": "dist",
+  "server": {
+    "url": "https://salao.andre-aguiar-jr.com.br",
+    "cleartext": false
+  }
+}
