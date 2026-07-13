@@ -8,14 +8,24 @@ import { sendAppointmentConfirmation } from "../lib/whatsapp.js";
 
 const SLOT_TAKEN_MESSAGE = "Esse horário acabou de ficar indisponível. Escolha outro.";
 
-// Só os campos seguros pra expor sem autenticação — nunca domain/slug/plan.
+// Só os campos seguros pra expor sem autenticação — nunca domain/slug,
+// nem os dados cadastrais/legais (CPF-CNPJ, razão social, contrato...).
+// address/city/state e o whatsapp existem aqui de propósito: são a forma do
+// cliente final achar e contatar o salão, então são públicos por natureza.
 export async function getPublicSalonInfo(req, res) {
   res.json({
     id: req.salon.id,
     name: req.salon.name,
+    plan: req.salon.plan,
+    category: req.salon.category,
     template: req.salon.template,
     logoUrl: req.salon.logoUrl,
     primaryColor: req.salon.primaryColor,
+    customization: req.salon.customization,
+    address: req.salon.address,
+    city: req.salon.city,
+    state: req.salon.state,
+    whatsapp: req.salon.ownerWhatsapp,
   });
 }
 
