@@ -5,7 +5,7 @@ const EXPIRES_IN = "8h";
 const ALGORITHM = "HS256";
 
 export function signSessionToken(user) {
-  return jwt.sign({ sub: user.id, role: user.role }, env.JWT_SECRET, {
+  return jwt.sign({ sub: user.id, role: user.role, salonId: user.salonId }, env.JWT_SECRET, {
     expiresIn: EXPIRES_IN,
     algorithm: ALGORITHM,
   });

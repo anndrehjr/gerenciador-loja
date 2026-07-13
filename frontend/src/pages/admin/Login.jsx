@@ -5,6 +5,8 @@ import { useAuth } from "../../contexts/AuthContext.jsx";
 import Input from "../../components/ui/Input.jsx";
 import Button from "../../components/ui/Button.jsx";
 
+// Login da equipe da plataforma (Painel Master). O login de cada salão
+// cliente fica em /:salonId/login (SalonLogin.jsx), com a marca do salão.
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -18,8 +20,8 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      await login(email, password);
-      navigate("/dashboard", { replace: true });
+      const loggedInUser = await login(email, password);
+      navigate(loggedInUser.role === "MASTER" ? "/master" : "/dashboard", { replace: true });
     } catch (err) {
       setError(err.message || "Falha no login.");
     } finally {
@@ -29,15 +31,15 @@ export default function Login() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-bg px-6 text-ink">
-      <div className="pointer-events-none absolute left-1/2 top-0 h-96 w-96 -translate-x-1/2 rounded-full bg-gradient-to-br from-violet-500/20 to-accent-blue/10 blur-3xl" />
+      <div className="pointer-events-none absolute left-1/2 top-0 h-96 w-96 -translate-x-1/2 rounded-full bg-gradient-to-br from-accent/20 to-accent-ink/10 blur-3xl" />
 
       <div className="relative w-full max-w-sm rounded-3xl border border-line bg-surface p-8 shadow-soft">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-accent-blue">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-accent to-accent-ink">
             <Scissors className="h-5 w-5 text-white" />
           </div>
           <h1 className="text-lg font-semibold">Entrar</h1>
-          <p className="text-sm text-muted">Acesso restrito à administração do salão.</p>
+          <p className="text-sm text-muted">Acesso restrito à equipe da plataforma.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">

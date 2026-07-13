@@ -66,7 +66,7 @@ const include = {
 export async function listProfessionals(req, res) {
   const onlyActive = req.query.active === "true";
   const professionals = await prisma.professional.findMany({
-    where: onlyActive ? { active: true } : undefined,
+    where: { salonId: req.salonId, ...(onlyActive ? { active: true } : {}) },
     include,
     orderBy: { name: "asc" },
   });
@@ -74,8 +74,8 @@ export async function listProfessionals(req, res) {
 }
 
 export async function getProfessional(req, res) {
-  const professional = await prisma.professional.findUnique({
-    where: { id: req.params.id },
+  const professional = await prisma.professional.findFirst({
+    where: { id: req.params.id, salonId: req.salonId },
     include,
   });
   if (!professional) throw new HttpError(404, "Profissional não encontrado.");
@@ -84,60 +84,78 @@ export async function getProfessional(req, res) {
 
 export async function createProfessional(req, res) {
   const data = professionalSchema.parse(req.body);
-  const professional = await prisma.professional.create({ data, include });
+  const professional = await prisma.professional.create({
+    data: { ...data, salonId: req.salonId },
+    include,
+  });
   res.status(201).json(professional);
 }
 
 export async function updateProfessional(req, res) {
   const data = professionalSchema.partial().parse(req.body);
-  const professional = await prisma.professional
-    .update({ where: { id: req.params.id }, data, include })
-    .catch(() => null);
-  if (!professional) throw new HttpError(404, "Profissional não encontrado.");
+
+  const existing = await prisma.professional.findFirst({
+    where: { id: req.params.id, salonId: req.salonId },
+  });
+  if (!existing) throw new HttpError(404, "Profissional não encontrado.");
+
+  const professional = await prisma.professional.update({
+    where: { id: existing.id },
+    data,
+    include,
+  });
   res.json(professional);
 }
 
 export async function deleteProfessional(req, res) {
-  await prisma.professional.delete({ where: { id: req.params.id } }).catch(() => {
-    throw new HttpError(404, "Profissional não encontrado.");
+  const existing = await prisma.professional.findFirst({
+    where: { id: req.params.id, salonId: req.salonId },
   });
+  if (!existing) throw new HttpError(404, "Profissional não encontrado.");
+
+  await prisma.professional.delete({ where: { id: existing.id } });
   res.status(204).send();
 }
 
 export async function replaceWorkingHours(req, res) {
   const hours = workingHoursSchema.parse(req.body);
 
-  const professional = await prisma.professional.findUnique({ where: { id: req.params.id } });
+  const professional = await prisma.professional.findFirst({
+    where: { id: req.params.id, salonId: req.salonId },
+  });
   if (!professional) throw new HttpError(404, "Profissional não encontrado.");
 
   await prisma.$transaction([
-    prisma.workingHour.deleteMany({ where: { professionalId: req.params.id } }),
+    prisma.workingHour.deleteMany({ where: { professionalId: professional.id } }),
     prisma.workingHour.createMany({
-      data: hours.map((h) => ({ ...h, professionalId: req.params.id })),
+      data: hours.map((h) => ({ ...h, professionalId: professional.id, salonId: req.salonId })),
     }),
   ]);
 
-  const updated = await prisma.professional.findUnique({ where: { id: req.params.id }, include });
+  const updated = await prisma.professional.findUnique({ where: { id: professional.id }, include });
   res.json(updated);
 }
 
 export async function createTimeOff(req, res) {
   const data = timeOffSchema.parse(req.body);
 
-  const professional = await prisma.professional.findUnique({ where: { id: req.params.id } });
+  const professional = await prisma.professional.findFirst({
+    where: { id: req.params.id, salonId: req.salonId },
+  });
   if (!professional) throw new HttpError(404, "Profissional não encontrado.");
 
   const timeOff = await prisma.timeOff.create({
-    data: { ...data, professionalId: req.params.id },
+    data: { ...data, professionalId: professional.id, salonId: req.salonId },
   });
   res.status(201).json(timeOff);
 }
 
 export async function deleteTimeOff(req, res) {
-  await prisma.timeOff
-    .delete({ where: { id: req.params.timeOffId } })
-    .catch(() => {
-      throw new HttpError(404, "Registro não encontrado.");
-    });
+  const existing = await prisma.timeOff.findFirst({
+    where: { id: req.params.timeOffId, salonId: req.salonId, professionalId: req.params.id },
+  });
+  if (!existing) throw new HttpError(404, "Registro não encontrado.");
+
+  await prisma.timeOff.delete({ where: { id: existing.id } });
   res.status(204).send();
 }

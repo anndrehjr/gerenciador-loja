@@ -3,29 +3,37 @@ import { Link } from "react-router-dom";
 import { Scissors, MapPin, Phone, Clock, ArrowRight } from "lucide-react";
 import { api } from "../../lib/api.js";
 import { formatMoney } from "../../lib/format.js";
+import { useSalon } from "../../contexts/SalonContext.jsx";
 import ThemeToggle from "../../components/ThemeToggle.jsx";
 import Button from "../../components/ui/Button.jsx";
 
 export default function SiteHome() {
+  const { publicBase, salon, path } = useSalon();
   const [services, setServices] = useState([]);
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     api
-      .get("/public/services")
+      .get(`${publicBase}/services`)
       .then(setServices)
       .catch(() => setLoadError(true));
-  }, []);
+  }, [publicBase]);
+
+  const salonName = salon?.name || "Salão";
 
   return (
     <div className="min-h-screen bg-bg text-ink">
       <header className="border-b border-line">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-5">
           <div className="flex items-center gap-2 font-semibold">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-accent-blue">
-              <Scissors className="h-3.5 w-3.5 text-white" />
-            </div>
-            Salão
+            {salon?.logoUrl ? (
+              <img src={salon.logoUrl} alt={salonName} className="h-7 w-7 rounded-lg object-cover" />
+            ) : (
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-accent to-accent-ink">
+                <Scissors className="h-3.5 w-3.5 text-white" />
+              </div>
+            )}
+            {salonName}
           </div>
           <nav className="flex items-center gap-6 text-sm text-muted">
             <a href="#servicos" className="transition duration-200 hover:text-ink">
@@ -41,14 +49,14 @@ export default function SiteHome() {
 
       <main className="mx-auto max-w-3xl px-6">
         <section className="relative overflow-hidden py-20">
-          <div className="pointer-events-none absolute -left-24 top-0 h-72 w-72 rounded-full bg-gradient-to-br from-violet-500/15 to-accent-blue/10 blur-3xl" />
+          <div className="pointer-events-none absolute -left-24 top-0 h-72 w-72 rounded-full bg-gradient-to-br from-accent/15 to-accent-ink/10 blur-3xl" />
           <h1 className="relative text-balance text-4xl font-semibold leading-tight sm:text-5xl">
             Cuidado e estilo, com hora marcada.
           </h1>
           <p className="relative mt-4 max-w-xl text-lg text-muted">
             Cortes, coloração e tratamentos capilares num ambiente pensado para você.
           </p>
-          <Link to="/agendar" className="relative mt-8 inline-block">
+          <Link to={path("/agendar")} className="relative mt-8 inline-block">
             <Button>
               Agendar horário
               <ArrowRight className="h-4 w-4" />
@@ -85,7 +93,7 @@ export default function SiteHome() {
                   <span className="whitespace-nowrap font-medium tabular-nums text-accent-ink">
                     {formatMoney(service.priceCents)}
                   </span>
-                  <Link to="/agendar">
+                  <Link to={path("/agendar")}>
                     <Button variant="ghost" className="px-3 py-1.5 text-xs">
                       Agendar
                     </Button>
@@ -113,7 +121,7 @@ export default function SiteHome() {
       </main>
 
       <footer className="border-t border-line py-8 text-center text-xs text-muted">
-        © {new Date().getFullYear()} Salão
+        © {new Date().getFullYear()} {salonName}
       </footer>
     </div>
   );

@@ -25,16 +25,20 @@ const cookieOptions = {
 export async function login(req, res) {
   const { email, password } = loginSchema.parse(req.body);
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({ where: { email }, include: { salon: true } });
   const valid = await verifyPassword(password, user?.passwordHash || DUMMY_HASH);
 
   if (!user || !valid) {
     throw new HttpError(401, "Credenciais inválidas.");
   }
 
+  if (user.salon && user.salon.status === "SUSPENDED") {
+    throw new HttpError(403, "Este salão está suspenso. Fale com o suporte.");
+  }
+
   const token = signSessionToken(user);
   res.cookie(env.COOKIE_NAME, token, cookieOptions);
-  res.json({ id: user.id, name: user.name, email: user.email, role: user.role });
+  res.json({ id: user.id, name: user.name, email: user.email, role: user.role, salonId: user.salonId });
 }
 
 export async function logout(req, res) {
@@ -47,5 +51,5 @@ export async function me(req, res) {
   if (!user) {
     throw new HttpError(401, "Sessão inválida.");
   }
-  res.json({ id: user.id, name: user.name, email: user.email, role: user.role });
+  res.json({ id: user.id, name: user.name, email: user.email, role: user.role, salonId: user.salonId });
 }

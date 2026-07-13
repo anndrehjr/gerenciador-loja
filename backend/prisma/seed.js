@@ -73,30 +73,30 @@ const APPOINTMENT_PLAN = [
   { dayOffset: 10, hour: 14, status: "AGENDADO" },
 ];
 
-function ensureService(data) {
+function ensureService(salonId, data) {
   return prisma.service.upsert({
-    where: { name: data.name },
+    where: { salonId_name: { salonId, name: data.name } },
     update: { durationMinutes: data.durationMinutes },
-    create: data,
+    create: { ...data, salonId },
   });
 }
 
-function ensureClient(data) {
+function ensureClient(salonId, data) {
   return prisma.client.upsert({
-    where: { email: data.email },
+    where: { salonId_email: { salonId, email: data.email } },
     update: {},
-    create: { ...data, phone: normalizePhone(data.phone) },
+    create: { ...data, salonId, phone: normalizePhone(data.phone) },
   });
 }
 
-async function ensureProfessional(data) {
-  let professional = await prisma.professional.findFirst({ where: { name: data.name } });
+async function ensureProfessional(salonId, data) {
+  let professional = await prisma.professional.findFirst({ where: { salonId, name: data.name } });
   if (!professional) {
     professional = await prisma.professional.create({
-      data: { name: data.name, specialty: data.specialty, bio: data.bio },
+      data: { name: data.name, specialty: data.specialty, bio: data.bio, salonId },
     });
     await prisma.workingHour.createMany({
-      data: data.workingHours.map((h) => ({ ...h, professionalId: professional.id })),
+      data: data.workingHours.map((h) => ({ ...h, professionalId: professional.id, salonId })),
     });
   }
   return professional;
@@ -110,6 +110,17 @@ function dateAt(dayOffset, hour) {
 }
 
 async function main() {
+  const salonSlug = process.env.SEED_SALON_SLUG || "salao-andre";
+  const salonName = process.env.SEED_SALON_NAME || "Salão";
+  const salonDomain = process.env.SEED_SALON_DOMAIN || null;
+
+  const salon = await prisma.salon.upsert({
+    where: { slug: salonSlug },
+    update: {},
+    create: { slug: salonSlug, name: salonName, domain: salonDomain },
+  });
+  console.log(`Salão pronto: ${salon.name} (${salon.slug})`);
+
   const adminEmail = process.env.SEED_ADMIN_EMAIL || "admin@salao.local";
   const adminPassword = process.env.SEED_ADMIN_PASSWORD;
 
@@ -123,35 +134,55 @@ async function main() {
 
   const admin = await prisma.user.upsert({
     where: { email: adminEmail },
-    update: { passwordHash },
+    update: { passwordHash, salonId: salon.id },
     create: {
       name: "Administrador",
       email: adminEmail,
       passwordHash,
       role: "ADMIN",
+      salonId: salon.id,
     },
   });
   console.log(`Usuário admin pronto: ${admin.email}`);
 
+  // MASTER opcional — só cria se as duas variáveis forem passadas
+  const masterEmail = process.env.SEED_MASTER_EMAIL;
+  const masterPassword = process.env.SEED_MASTER_PASSWORD;
+  if (masterEmail && masterPassword) {
+    const masterHash = await bcrypt.hash(masterPassword, 12);
+    const master = await prisma.user.upsert({
+      where: { email: masterEmail },
+      update: { passwordHash: masterHash, role: "MASTER", salonId: null },
+      create: {
+        name: "Master",
+        email: masterEmail,
+        passwordHash: masterHash,
+        role: "MASTER",
+        salonId: null,
+      },
+    });
+    console.log(`Usuário master pronto: ${master.email}`);
+  }
+
   const services = [];
   for (const data of SERVICES) {
-    services.push(await ensureService(data));
+    services.push(await ensureService(salon.id, data));
   }
   console.log(`Catálogo de serviços pronto: ${services.length} serviços.`);
 
   const clients = [];
   for (const data of CLIENTS) {
-    clients.push(await ensureClient(data));
+    clients.push(await ensureClient(salon.id, data));
   }
   console.log(`Clientes prontos: ${clients.length} clientes.`);
 
   const professionals = [];
   for (const data of PROFESSIONALS) {
-    professionals.push(await ensureProfessional(data));
+    professionals.push(await ensureProfessional(salon.id, data));
   }
   console.log(`Profissionais prontos: ${professionals.length} profissionais.`);
 
-  const appointmentCount = await prisma.appointment.count();
+  const appointmentCount = await prisma.appointment.count({ where: { salonId: salon.id } });
   if (appointmentCount === 0) {
     for (let i = 0; i < APPOINTMENT_PLAN.length; i++) {
       const plan = APPOINTMENT_PLAN[i];
@@ -160,6 +191,7 @@ async function main() {
       const professional = professionals[i % professionals.length];
       await prisma.appointment.create({
         data: {
+          salonId: salon.id,
           clientId: client.id,
           serviceId: service.id,
           professionalId: professional.id,

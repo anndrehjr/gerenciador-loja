@@ -16,10 +16,26 @@ const appointmentSchema = z.object({
 
 const include = { client: true, service: true, professional: true };
 
+// Confere que cliente/serviço/profissional citados no payload pertencem ao
+// mesmo salão do usuário logado — sem isso, um admin poderia (por acidente ou
+// não) criar um agendamento apontando pra um cliente de outro salão.
+async function assertOwnedByCurrentSalon(salonId, { clientId, serviceId, professionalId }) {
+  const checks = [prisma.client.findFirst({ where: { id: clientId, salonId } })];
+  checks.push(prisma.service.findFirst({ where: { id: serviceId, salonId } }));
+  if (professionalId) {
+    checks.push(prisma.professional.findFirst({ where: { id: professionalId, salonId } }));
+  }
+  const results = await Promise.all(checks);
+  if (results.some((r) => !r)) {
+    throw new HttpError(400, "Cliente, serviço ou profissional inválido.");
+  }
+}
+
 export async function listAppointments(req, res) {
   const { clientId, serviceId, status, from, to } = req.query;
 
   const where = {
+    salonId: req.salonId,
     ...(clientId ? { clientId } : {}),
     ...(serviceId ? { serviceId } : {}),
     ...(status ? { status } : {}),
@@ -42,8 +58,8 @@ export async function listAppointments(req, res) {
 }
 
 export async function getAppointment(req, res) {
-  const appointment = await prisma.appointment.findUnique({
-    where: { id: req.params.id },
+  const appointment = await prisma.appointment.findFirst({
+    where: { id: req.params.id, salonId: req.salonId },
     include,
   });
   if (!appointment) throw new HttpError(404, "Agendamento não encontrado.");
@@ -52,7 +68,12 @@ export async function getAppointment(req, res) {
 
 export async function createAppointment(req, res) {
   const data = appointmentSchema.parse(req.body);
-  const appointment = await prisma.appointment.create({ data, include });
+  await assertOwnedByCurrentSalon(req.salonId, data);
+
+  const appointment = await prisma.appointment.create({
+    data: { ...data, salonId: req.salonId },
+    include,
+  });
   res.status(201).json(appointment);
   sendAppointmentConfirmation(appointment).catch(() => {});
 }
@@ -60,13 +81,24 @@ export async function createAppointment(req, res) {
 export async function updateAppointment(req, res) {
   const data = appointmentSchema.partial().parse(req.body);
 
-  const before = await prisma.appointment.findUnique({ where: { id: req.params.id } });
+  const before = await prisma.appointment.findFirst({
+    where: { id: req.params.id, salonId: req.salonId },
+  });
   if (!before) throw new HttpError(404, "Agendamento não encontrado.");
 
-  const appointment = await prisma.appointment
-    .update({ where: { id: req.params.id }, data, include })
-    .catch(() => null);
-  if (!appointment) throw new HttpError(404, "Agendamento não encontrado.");
+  if (data.clientId || data.serviceId || data.professionalId) {
+    await assertOwnedByCurrentSalon(req.salonId, {
+      clientId: data.clientId || before.clientId,
+      serviceId: data.serviceId || before.serviceId,
+      professionalId: data.professionalId !== undefined ? data.professionalId : before.professionalId,
+    });
+  }
+
+  const appointment = await prisma.appointment.update({
+    where: { id: before.id },
+    data,
+    include,
+  });
   res.json(appointment);
 
   if (data.status === "CANCELADO" && before.status !== "CANCELADO") {
@@ -75,8 +107,11 @@ export async function updateAppointment(req, res) {
 }
 
 export async function deleteAppointment(req, res) {
-  await prisma.appointment.delete({ where: { id: req.params.id } }).catch(() => {
-    throw new HttpError(404, "Agendamento não encontrado.");
+  const existing = await prisma.appointment.findFirst({
+    where: { id: req.params.id, salonId: req.salonId },
   });
+  if (!existing) throw new HttpError(404, "Agendamento não encontrado.");
+
+  await prisma.appointment.delete({ where: { id: existing.id } });
   res.status(204).send();
 }

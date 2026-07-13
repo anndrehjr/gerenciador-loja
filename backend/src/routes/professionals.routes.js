@@ -9,12 +9,12 @@ import {
   createTimeOff,
   deleteTimeOff,
 } from "../controllers/professionals.controller.js";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth, requireSalon } from "../middleware/auth.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const professionalsRouter = Router();
 
-professionalsRouter.use(requireAuth);
+professionalsRouter.use(requireAuth, requireSalon);
 professionalsRouter.get("/", asyncHandler(listProfessionals));
 professionalsRouter.get("/:id", asyncHandler(getProfessional));
 professionalsRouter.post("/", asyncHandler(createProfessional));

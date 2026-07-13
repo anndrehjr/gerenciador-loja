@@ -8,9 +8,20 @@ import { sendAppointmentConfirmation } from "../lib/whatsapp.js";
 
 const SLOT_TAKEN_MESSAGE = "Esse horário acabou de ficar indisponível. Escolha outro.";
 
+// Só os campos seguros pra expor sem autenticação — nunca domain/slug/plan.
+export async function getPublicSalonInfo(req, res) {
+  res.json({
+    id: req.salon.id,
+    name: req.salon.name,
+    template: req.salon.template,
+    logoUrl: req.salon.logoUrl,
+    primaryColor: req.salon.primaryColor,
+  });
+}
+
 export async function listPublicServices(req, res) {
   const services = await prisma.service.findMany({
-    where: { active: true },
+    where: { salonId: req.salonId, active: true },
     orderBy: { name: "asc" },
     select: { id: true, name: true, description: true, priceCents: true, durationMinutes: true },
   });
@@ -19,7 +30,7 @@ export async function listPublicServices(req, res) {
 
 export async function listPublicProfessionals(req, res) {
   const professionals = await prisma.professional.findMany({
-    where: { active: true },
+    where: { salonId: req.salonId, active: true },
     orderBy: { name: "asc" },
     select: { id: true, name: true, photoUrl: true, specialty: true, bio: true },
   });
@@ -34,7 +45,10 @@ export async function lookupClientByPhone(req, res) {
   // nome, e-mail ou histórico, já que quem pergunta ainda não provou ser o
   // dono do número. Isso evita que o telefone sozinho vire uma forma de
   // varrer/enumerar dados de clientes reais do salão.
-  const client = await prisma.client.findUnique({ where: { phone }, select: { id: true } });
+  const client = await prisma.client.findFirst({
+    where: { phone, salonId: req.salonId },
+    select: { id: true },
+  });
 
   if (!client) {
     return res.json({ found: false });
@@ -55,15 +69,20 @@ const newClientSchema = z.object({
 export async function createPublicClient(req, res) {
   const data = newClientSchema.parse(req.body);
 
-  const existing = await prisma.client.findUnique({ where: { phone: data.phone }, select: { id: true } });
+  const existing = await prisma.client.findFirst({
+    where: { phone: data.phone, salonId: req.salonId },
+    select: { id: true },
+  });
   if (existing) {
     return res.status(200).json({ id: existing.id });
   }
 
-  const client = await prisma.client.create({ data }).catch((err) => {
-    if (err.code === "P2002") throw new HttpError(409, "Já existe um cliente com esses dados.");
-    throw err;
-  });
+  const client = await prisma.client
+    .create({ data: { ...data, salonId: req.salonId } })
+    .catch((err) => {
+      if (err.code === "P2002") throw new HttpError(409, "Já existe um cliente com esses dados.");
+      throw err;
+    });
   res.status(201).json(client);
 }
 
@@ -74,10 +93,13 @@ const availabilityQuerySchema = z.object({
 
 export async function getPublicAvailability(req, res) {
   const { serviceId, days } = availabilityQuerySchema.parse(req.query);
-  const professional = await prisma.professional.findUnique({
-    where: { id: req.params.id },
-  });
+
+  const [professional, service] = await Promise.all([
+    prisma.professional.findFirst({ where: { id: req.params.id, salonId: req.salonId } }),
+    prisma.service.findFirst({ where: { id: serviceId, salonId: req.salonId } }),
+  ]);
   if (!professional) throw new HttpError(404, "Profissional não encontrado.");
+  if (!service) throw new HttpError(404, "Serviço não encontrado.");
 
   const availability = await getAvailabilityRange({
     professionalId: req.params.id,
@@ -100,9 +122,9 @@ export async function createPublicAppointment(req, res) {
   const data = bookingSchema.parse(req.body);
 
   const [client, service, professional] = await Promise.all([
-    prisma.client.findUnique({ where: { id: data.clientId } }),
-    prisma.service.findUnique({ where: { id: data.serviceId } }),
-    prisma.professional.findUnique({ where: { id: data.professionalId } }),
+    prisma.client.findFirst({ where: { id: data.clientId, salonId: req.salonId } }),
+    prisma.service.findFirst({ where: { id: data.serviceId, salonId: req.salonId } }),
+    prisma.professional.findFirst({ where: { id: data.professionalId, salonId: req.salonId } }),
   ]);
   if (!client) throw new HttpError(404, "Cliente não encontrado.");
   if (!service || !service.active) throw new HttpError(404, "Serviço indisponível.");
@@ -121,7 +143,7 @@ export async function createPublicAppointment(req, res) {
         if (!free) throw new HttpError(409, SLOT_TAKEN_MESSAGE);
 
         return tx.appointment.create({
-          data,
+          data: { ...data, salonId: req.salonId },
           include: { client: true, service: true, professional: true },
         });
       },
