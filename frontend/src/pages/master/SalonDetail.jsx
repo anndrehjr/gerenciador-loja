@@ -6,15 +6,21 @@ import Input from "../../components/ui/Input.jsx";
 import Button from "../../components/ui/Button.jsx";
 import StatTile from "../../components/ui/StatTile.jsx";
 import BusinessFieldsSection, { CONTRACT_STATUS_LABELS } from "./BusinessFieldsSection.jsx";
+import { PLANS, PLAN_INFO } from "../../lib/plans.js";
 
 const BUSINESS_FIELD_KEYS = [
   "document",
   "legalName",
+  "tradeName",
   "ownerName",
   "ownerPhone",
   "ownerWhatsapp",
   "ownerEmail",
   "address",
+  "city",
+  "state",
+  "zipCode",
+  "category",
   "notes",
 ];
 
@@ -95,8 +101,9 @@ export default function SalonDetail() {
         <div>
           <h1 className="text-lg font-semibold">{salon.name}</h1>
           <p className="mt-1 text-sm text-muted">
-            {salon.status === "ACTIVE" ? "Ativo" : "Suspenso"} · contrato {CONTRACT_STATUS_LABELS[salon.contractStatus]}{" "}
-            · criado em {new Date(salon.createdAt).toLocaleDateString("pt-BR")}
+            {salon.status === "ACTIVE" ? "Ativo" : "Suspenso"} · plano {PLAN_INFO[salon.plan]?.label || salon.plan} ·
+            contrato {CONTRACT_STATUS_LABELS[salon.contractStatus]} · criado em{" "}
+            {new Date(salon.createdAt).toLocaleDateString("pt-BR")}
           </p>
         </div>
         <div className="flex gap-2">
@@ -148,12 +155,23 @@ export default function SalonDetail() {
           value={form.domain}
           onChange={(e) => setForm({ ...form, domain: e.target.value })}
         />
-        <Input
-          id="plan"
-          label="Plano"
-          value={form.plan}
-          onChange={(e) => setForm({ ...form, plan: e.target.value })}
-        />
+        <div>
+          <label htmlFor="plan" className="mb-1.5 block text-sm font-medium text-ink">
+            Plano
+          </label>
+          <select
+            id="plan"
+            value={form.plan}
+            onChange={(e) => setForm({ ...form, plan: e.target.value })}
+            className="w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-sm outline-none transition duration-200 focus:border-accent"
+          >
+            {PLANS.map((p) => (
+              <option key={p} value={p}>
+                {PLAN_INFO[p].label}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <BusinessFieldsSection form={form} onChange={setForm} />
 

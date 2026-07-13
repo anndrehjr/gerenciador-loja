@@ -3,7 +3,7 @@ import { useAuth } from "./contexts/AuthContext.jsx";
 import { SalonProvider } from "./contexts/SalonContext.jsx";
 
 import PlatformHome from "./pages/site/PlatformHome.jsx";
-import SiteHome from "./pages/site/SiteHome.jsx";
+import SitePage from "./pages/site/SitePage.jsx";
 import BookingWizard from "./pages/site/BookingWizard.jsx";
 import SalonLogin from "./pages/site/SalonLogin.jsx";
 import Login from "./pages/admin/Login.jsx";
@@ -62,7 +62,7 @@ export default function App() {
       <Route path="/" element={<PlatformHome />} />
       <Route path="/login" element={<Login />} />
 
-      <Route path="/:salonId" element={<SalonRoute><SiteHome /></SalonRoute>} />
+      <Route path="/:salonId" element={<SalonRoute><SitePage /></SalonRoute>} />
       <Route path="/:salonId/agendar" element={<SalonRoute><BookingWizard /></SalonRoute>} />
       <Route path="/:salonId/login" element={<SalonRoute><SalonLogin /></SalonRoute>} />
 

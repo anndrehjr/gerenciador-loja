@@ -2,19 +2,26 @@ import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import { hashPassword } from "../utils/password.js";
 import { HttpError } from "../middleware/errorHandler.js";
+import { PLANS } from "../lib/plans.js";
 
 const SLUG_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const CATEGORIES = ["FEMININO", "BARBEARIA", "UNISSEX", "ESTETICA", "OUTROS"];
 
 const slugField = z.string().regex(SLUG_REGEX, "Use apenas letras minúsculas, números e hífen.");
 
 const businessFields = {
   document: z.string().min(1).optional().nullable(),
   legalName: z.string().min(1).optional().nullable(),
+  tradeName: z.string().min(1).optional().nullable(),
   ownerName: z.string().min(1).optional().nullable(),
   ownerPhone: z.string().min(1).optional().nullable(),
   ownerWhatsapp: z.string().min(1).optional().nullable(),
   ownerEmail: z.string().email().optional().nullable().or(z.literal("").transform(() => null)),
   address: z.string().min(1).optional().nullable(),
+  city: z.string().min(1).optional().nullable(),
+  state: z.string().min(1).optional().nullable(),
+  zipCode: z.string().min(1).optional().nullable(),
+  category: z.enum(CATEGORIES).optional(),
   contractStatus: z.enum(["TRIAL", "ACTIVE", "PAST_DUE", "CANCELED"]).optional(),
   contractDueDate: z
     .string()
@@ -29,7 +36,7 @@ const createSalonSchema = z.object({
   name: z.string().min(1),
   slug: slugField,
   domain: z.string().min(1).optional().nullable(),
-  plan: z.string().min(1).optional(),
+  plan: z.enum(PLANS).optional(),
   adminName: z.string().min(1),
   adminEmail: z.string().email(),
   adminPassword: z.string().min(8, "A senha precisa ter pelo menos 8 caracteres."),
@@ -40,7 +47,7 @@ const updateSalonSchema = z.object({
   name: z.string().min(1).optional(),
   slug: slugField.optional(),
   domain: z.string().min(1).optional().nullable(),
-  plan: z.string().min(1).optional(),
+  plan: z.enum(PLANS).optional(),
   ...businessFields,
 });
 
@@ -92,7 +99,7 @@ export async function createSalon(req, res) {
           name: data.name,
           slug: data.slug,
           domain: data.domain || null,
-          plan: data.plan || "starter",
+          plan: data.plan || "START",
           ...pickBusinessFields(data),
         },
       });

@@ -24,6 +24,16 @@ enum ContractStatus {
   CANCELED
 }
 
+// Segmento de negócio do salão — define qual identidade visual de landing
+// page (template exclusivo) ele recebe nos planos PRO/PREMIUM.
+enum SalonCategory {
+  FEMININO
+  BARBEARIA
+  UNISSEX
+  ESTETICA
+  OUTROS
+}
+
 // Um salão/barbearia/clínica assinante da plataforma. Todo dado operacional
 // (clientes, serviços, profissionais, agendamentos) pertence a exatamente um
 // Salon — é o limite de isolamento entre clientes da plataforma.
@@ -32,10 +42,13 @@ model Salon {
   name      String
   slug      String      @unique
   domain    String?     @unique
-  status    SalonStatus @default(ACTIVE)
-  plan      String      @default("starter")
+  status    SalonStatus   @default(ACTIVE)
+  plan      String        @default("START")
+  category  SalonCategory @default(OUTROS)
 
   // Identidade visual do site público e da tela de login desse salão.
+  // Nos planos START, "template" ainda decide o visual (os 4 modelos
+  // antigos); em PRO/PREMIUM, "category" passa a mandar na landing.
   template     String  @default("minimal-studio")
   logoUrl      String?
   primaryColor String?
@@ -44,10 +57,19 @@ model Salon {
   // Master — nunca exposto nas rotas públicas nem no self-service do salão).
   document        String?
   legalName       String?
+  tradeName       String?
   ownerName       String?
   ownerPhone      String?
   ownerWhatsapp   String?
   ownerEmail      String?
+  city            String?
+  state           String?
+  zipCode         String?
+
+  // Overrides livres de personalização (plano PREMIUM) — copy do hero, ordem
+  // de seções, textos de cada bloco etc. Formato aberto de propósito: cada
+  // bloco da landing lê só as chaves que conhece (ver frontend/src/lib/blocks).
+  customization Json?
   address         String?
   contractStatus  ContractStatus @default(TRIAL)
   contractDueDate DateTime?
