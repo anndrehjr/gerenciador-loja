@@ -1,6 +1,6 @@
 const VARIANTS = {
   primary:
-    "bg-gradient-to-b from-violet-500 to-accent text-white shadow-soft hover:shadow-glow hover:-translate-y-0.5",
+    "bg-gradient-to-b from-accent to-accent-ink text-white shadow-soft hover:shadow-glow hover:-translate-y-0.5",
   ghost:
     "text-ink border border-line bg-transparent hover:bg-hover hover:-translate-y-0.5",
   danger:

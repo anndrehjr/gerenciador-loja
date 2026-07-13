@@ -9,6 +9,60 @@ datasource db {
 
 enum Role {
   ADMIN
+  MASTER
+}
+
+enum SalonStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum ContractStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+// Um salão/barbearia/clínica assinante da plataforma. Todo dado operacional
+// (clientes, serviços, profissionais, agendamentos) pertence a exatamente um
+// Salon — é o limite de isolamento entre clientes da plataforma.
+model Salon {
+  id        String      @id @default(cuid())
+  name      String
+  slug      String      @unique
+  domain    String?     @unique
+  status    SalonStatus @default(ACTIVE)
+  plan      String      @default("starter")
+
+  // Identidade visual do site público e da tela de login desse salão.
+  template     String  @default("minimal-studio")
+  logoUrl      String?
+  primaryColor String?
+
+  // Dados cadastrais/comerciais do cliente da plataforma (uso do Painel
+  // Master — nunca exposto nas rotas públicas nem no self-service do salão).
+  document        String?
+  legalName       String?
+  ownerName       String?
+  ownerPhone      String?
+  ownerWhatsapp   String?
+  ownerEmail      String?
+  address         String?
+  contractStatus  ContractStatus @default(TRIAL)
+  contractDueDate DateTime?
+  notes           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users         User[]
+  clients       Client[]
+  services      Service[]
+  professionals Professional[]
+  workingHours  WorkingHour[]
+  timeOff       TimeOff[]
+  appointments  Appointment[]
 }
 
 model User {
@@ -19,21 +73,33 @@ model User {
   role         Role     @default(ADMIN)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  // null só para usuários MASTER (equipe da plataforma, sem salão fixo)
+  salon   Salon?  @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  salonId String?
+
+  @@index([salonId])
 }
 
 model Client {
   id           String        @id @default(cuid())
   name         String
-  email        String?       @unique
-  phone        String?       @unique
+  email        String?
+  phone        String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   appointments Appointment[]
+
+  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  salonId String
+
+  @@unique([salonId, email])
+  @@unique([salonId, phone])
 }
 
 model Service {
   id              String        @id @default(cuid())
-  name            String        @unique
+  name            String
   description     String?
   priceCents      Int
   durationMinutes Int           @default(30)
@@ -41,6 +107,11 @@ model Service {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   appointments    Appointment[]
+
+  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  salonId String
+
+  @@unique([salonId, name])
 }
 
 model Professional {
@@ -55,6 +126,11 @@ model Professional {
   workingHours WorkingHour[]
   timeOff      TimeOff[]
   appointments Appointment[]
+
+  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  salonId String
+
+  @@index([salonId])
 }
 
 // Uma janela de trabalho por dia da semana (0=domingo..6=sábado). Um mesmo
@@ -71,7 +147,11 @@ model WorkingHour {
   professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
   professionalId String
 
+  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  salonId String
+
   @@index([professionalId, weekday])
+  @@index([salonId])
 }
 
 // Período de férias/folga de um profissional (datas, inclusive nos dois
@@ -86,7 +166,11 @@ model TimeOff {
   professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
   professionalId String
 
+  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  salonId String
+
   @@index([professionalId])
+  @@index([salonId])
 }
 
 enum AppointmentStatus {
@@ -113,8 +197,12 @@ model Appointment {
   professional   Professional? @relation(fields: [professionalId], references: [id], onDelete: Restrict)
   professionalId String?
 
+  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  salonId String
+
   @@index([clientId])
   @@index([serviceId])
   @@index([date])
   @@index([professionalId])
+  @@index([salonId])
 }

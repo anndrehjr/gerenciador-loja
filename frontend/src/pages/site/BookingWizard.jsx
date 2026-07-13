@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, Clock, UserRound, CalendarPlus } from "lucide-react";
 import { api } from "../../lib/api.js";
 import { formatMoney } from "../../lib/format.js";
+import { useSalon } from "../../contexts/SalonContext.jsx";
 import Button from "../../components/ui/Button.jsx";
 import Input from "../../components/ui/Input.jsx";
 
@@ -16,7 +17,7 @@ function ProgressSteps({ current }) {
           <div
             className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-medium transition duration-200 ${
               i <= current
-                ? "bg-gradient-to-br from-violet-500 to-accent-blue text-white"
+                ? "bg-gradient-to-br from-accent to-accent-ink text-white"
                 : "bg-hover text-muted"
             }`}
           >
@@ -44,6 +45,7 @@ function StepShell({ title, subtitle, children }) {
 }
 
 function PhoneStep({ onNext }) {
+  const { publicBase } = useSalon();
   const [phone, setPhone] = useState("");
   const [status, setStatus] = useState("idle");
   const [clientId, setClientId] = useState(null);
@@ -62,7 +64,7 @@ function PhoneStep({ onNext }) {
     setStatus("checking");
     const timeout = setTimeout(() => {
       api
-        .get(`/public/clients/lookup?phone=${encodeURIComponent(digits)}`)
+        .get(`${publicBase}/clients/lookup?phone=${encodeURIComponent(digits)}`)
         .then((data) => {
           if (data.found) {
             setClientId(data.clientId);
@@ -74,7 +76,7 @@ function PhoneStep({ onNext }) {
         .catch(() => setStatus("idle"));
     }, 500);
     return () => clearTimeout(timeout);
-  }, [digits]);
+  }, [digits, publicBase]);
 
   // Telefone já cadastrado: não exibimos nome/e-mail/histórico de quem quer
   // que seja (quem está digitando ainda não provou ser o dono do número) —
@@ -96,7 +98,7 @@ function PhoneStep({ onNext }) {
     }
     setSubmitting(true);
     try {
-      const client = await api.post("/public/clients", {
+      const client = await api.post(`${publicBase}/clients`, {
         name,
         phone: digits,
         email: email || null,
@@ -167,6 +169,7 @@ function RetryNotice({ message, onRetry }) {
 }
 
 function ServiceStep({ onNext, onBack }) {
+  const { publicBase } = useSalon();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -176,11 +179,11 @@ function ServiceStep({ onNext, onBack }) {
     setLoading(true);
     setLoadError(false);
     api
-      .get("/public/services")
+      .get(`${publicBase}/services`)
       .then(setServices)
       .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
-  }, [reloadKey]);
+  }, [reloadKey, publicBase]);
 
   return (
     <StepShell title="Escolha o serviço" subtitle="Selecione o que você deseja agendar.">
@@ -223,6 +226,7 @@ function ServiceStep({ onNext, onBack }) {
 }
 
 function ProfessionalStep({ onNext, onBack }) {
+  const { publicBase } = useSalon();
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -232,11 +236,11 @@ function ProfessionalStep({ onNext, onBack }) {
     setLoading(true);
     setLoadError(false);
     api
-      .get("/public/professionals")
+      .get(`${publicBase}/professionals`)
       .then(setProfessionals)
       .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
-  }, [reloadKey]);
+  }, [reloadKey, publicBase]);
 
   return (
     <StepShell title="Escolha o profissional" subtitle="Quem vai te atender?">
@@ -257,7 +261,7 @@ function ProfessionalStep({ onNext, onBack }) {
               onClick={() => onNext(professional)}
               className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-5 text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-soft hover:border-accent/40"
             >
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-accent-blue/10 text-accent-ink">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent/20 to-accent-ink/10 text-accent-ink">
                 <UserRound className="h-6 w-6" />
               </div>
               <div>
@@ -286,6 +290,7 @@ function formatDayLabel(dateStr) {
 }
 
 function DateTimeStep({ professional, service, onNext, onBack }) {
+  const { publicBase } = useSalon();
   const [availability, setAvailability] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -297,7 +302,7 @@ function DateTimeStep({ professional, service, onNext, onBack }) {
     setLoading(true);
     setLoadError(false);
     api
-      .get(`/public/professionals/${professional.id}/availability?serviceId=${service.id}&days=21`)
+      .get(`${publicBase}/professionals/${professional.id}/availability?serviceId=${service.id}&days=21`)
       .then((data) => {
         setAvailability(data);
         const firstWithSlots = data.find((d) => d.slots.length > 0);
@@ -305,7 +310,7 @@ function DateTimeStep({ professional, service, onNext, onBack }) {
       })
       .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
-  }, [professional.id, service.id, reloadKey]);
+  }, [professional.id, service.id, reloadKey, publicBase]);
 
   const selectedDay = useMemo(
     () => availability.find((d) => d.date === selectedDate),
@@ -359,7 +364,7 @@ function DateTimeStep({ professional, service, onNext, onBack }) {
                 disabled
                   ? "cursor-not-allowed border-line text-muted/40"
                   : active
-                    ? "border-transparent bg-gradient-to-br from-violet-500 to-accent-blue text-white"
+                    ? "border-transparent bg-gradient-to-br from-accent to-accent-ink text-white"
                     : "border-line text-ink hover:bg-hover"
               }`}
             >
@@ -392,7 +397,7 @@ function DateTimeStep({ professional, service, onNext, onBack }) {
               onClick={() => setSelectedTime(time)}
               className={`rounded-xl border px-4 py-2 text-sm font-medium tabular-nums transition duration-200 ${
                 selectedTime === time
-                  ? "border-transparent bg-gradient-to-br from-violet-500 to-accent-blue text-white"
+                  ? "border-transparent bg-gradient-to-br from-accent to-accent-ink text-white"
                   : "border-line text-ink hover:bg-hover"
               }`}
             >
@@ -471,13 +476,14 @@ function SummaryRow({ label, value }) {
 }
 
 function SuccessStep({ appointment }) {
+  const { salon, path } = useSalon();
   const start = new Date(appointment.date);
   const end = new Date(start.getTime() + appointment.service.durationMinutes * 60000);
   const toGoogleFormat = (d) => d.toISOString().replace(/[-:]|\.\d{3}/g, "");
 
   const calendarUrl = new URL("https://calendar.google.com/calendar/render");
   calendarUrl.searchParams.set("action", "TEMPLATE");
-  calendarUrl.searchParams.set("text", `${appointment.service.name} — Salão`);
+  calendarUrl.searchParams.set("text", `${appointment.service.name} — ${salon?.name || "Salão"}`);
   calendarUrl.searchParams.set("dates", `${toGoogleFormat(start)}/${toGoogleFormat(end)}`);
   calendarUrl.searchParams.set(
     "details",
@@ -486,7 +492,7 @@ function SuccessStep({ appointment }) {
 
   return (
     <div className="flex flex-col items-center gap-6 py-10 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-accent-blue">
+      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-accent to-accent-ink">
         <Check className="h-8 w-8 text-white" />
       </div>
       <div>
@@ -502,7 +508,7 @@ function SuccessStep({ appointment }) {
             Adicionar ao Google Agenda
           </Button>
         </a>
-        <Link to="/">
+        <Link to={path("/")}>
           <Button variant="ghost">Voltar ao início</Button>
         </Link>
       </div>
@@ -511,6 +517,7 @@ function SuccessStep({ appointment }) {
 }
 
 export default function BookingWizard() {
+  const { publicBase } = useSalon();
   const [step, setStep] = useState(0);
   const [booking, setBooking] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -522,7 +529,7 @@ export default function BookingWizard() {
     setError("");
     try {
       const dateTime = new Date(`${booking.date}T${booking.time}:00`);
-      const appointment = await api.post("/public/appointments", {
+      const appointment = await api.post(`${publicBase}/appointments`, {
         clientId: booking.client.id,
         serviceId: booking.service.id,
         professionalId: booking.professional.id,

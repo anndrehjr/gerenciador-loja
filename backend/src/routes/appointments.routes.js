@@ -6,12 +6,12 @@ import {
   updateAppointment,
   deleteAppointment,
 } from "../controllers/appointments.controller.js";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth, requireSalon } from "../middleware/auth.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const appointmentsRouter = Router();
 
-appointmentsRouter.use(requireAuth);
+appointmentsRouter.use(requireAuth, requireSalon);
 appointmentsRouter.get("/", asyncHandler(listAppointments));
 appointmentsRouter.get("/:id", asyncHandler(getAppointment));
 appointmentsRouter.post("/", asyncHandler(createAppointment));

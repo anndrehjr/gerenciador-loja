@@ -7,10 +7,9 @@ import {
   createPublicClient,
   getPublicAvailability,
   createPublicAppointment,
+  getPublicSalonInfo,
 } from "../controllers/public.controller.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-
-export const publicRouter = Router();
 
 const bookingLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -32,6 +31,13 @@ const availabilityLimiter = rateLimit({
   message: { error: "Muitas tentativas. Tente novamente em alguns minutos." },
 });
 
+// As rotas em si não sabem (nem precisam saber) se o salão foi resolvido
+// pelo domínio da requisição ou por um :salonId na URL — isso é resolvido
+// antes, por um middleware diferente montado em app.js pra cada um dos dois
+// prefixos (/api/public e /api/public/s/:salonId). Aqui só existe uma vez.
+export const publicRouter = Router();
+
+publicRouter.get("/salon", asyncHandler(getPublicSalonInfo));
 publicRouter.get("/services", asyncHandler(listPublicServices));
 publicRouter.get("/professionals", asyncHandler(listPublicProfessionals));
 publicRouter.get(

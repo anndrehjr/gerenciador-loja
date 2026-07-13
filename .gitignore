@@ -19,6 +19,9 @@ dist/
 .env.test.local
 .env.production.local
 
+# editor/tooling local config
+.claude/
+
 # misc
 .DS_Store
 npm-debug.log*

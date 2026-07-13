@@ -12,7 +12,11 @@ import { servicesRouter } from "./routes/services.routes.js";
 import { appointmentsRouter } from "./routes/appointments.routes.js";
 import { professionalsRouter } from "./routes/professionals.routes.js";
 import { publicRouter } from "./routes/public.routes.js";
+import { masterRouter } from "./routes/master.routes.js";
+import { salonRouter } from "./routes/salon.routes.js";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler.js";
+import { resolveSalonByParam } from "./middleware/tenant.js";
+import { asyncHandler } from "./utils/asyncHandler.js";
 
 export const app = express();
 
@@ -57,11 +61,18 @@ const loginLimiter = rateLimit({
 app.use("/api", apiLimiter);
 app.use("/api/auth/login", loginLimiter);
 app.use("/api/auth", authRouter);
-app.use("/api/public", publicRouter);
+
+// Site público do salão em /:salonId — resolve o salão pelo id na URL, sem
+// precisar de DNS/domínio próprio configurado (resolveSalon por domínio
+// segue disponível em tenant.js pra quando domínios próprios entrarem em uso).
+app.use("/api/public/:salonId", asyncHandler(resolveSalonByParam), publicRouter);
+
 app.use("/api/clients", clientsRouter);
 app.use("/api/services", servicesRouter);
 app.use("/api/appointments", appointmentsRouter);
 app.use("/api/professionals", professionalsRouter);
+app.use("/api/salon", salonRouter);
+app.use("/api/master", masterRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
