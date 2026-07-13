@@ -8,6 +8,10 @@ export default function Contact({ salon }) {
     : null;
   const whatsappHref = salon.whatsapp ? `https://wa.me/55${salon.whatsapp.replace(/\D/g, "")}` : null;
 
+  const embedSrc = addressLine
+    ? `https://maps.google.com/maps?q=${encodeURIComponent(`${salon.name} - ${addressLine}`)}&output=embed`
+    : null;
+
   if (!addressLine && !whatsappHref) return null;
 
   return (
@@ -36,6 +40,18 @@ export default function Contact({ salon }) {
           </li>
         )}
       </ul>
+
+      {embedSrc && (
+        <div className="mt-6 aspect-video overflow-hidden rounded-2xl border border-line">
+          <iframe
+            src={embedSrc}
+            title="Localização no mapa"
+            className="h-full w-full"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        </div>
+      )}
     </section>
   );
 }

@@ -20,6 +20,7 @@ export async function getPublicSalonInfo(req, res) {
     category: req.salon.category,
     template: req.salon.template,
     logoUrl: req.salon.logoUrl,
+    bannerUrl: req.salon.bannerUrl,
     primaryColor: req.salon.primaryColor,
     customization: req.salon.customization,
     address: req.salon.address,
