@@ -225,9 +225,9 @@ function ServiceStep({ onNext, onBack }) {
   );
 }
 
-function ProfessionalStep({ onNext, onBack }) {
+function ProfessionalStep({ service, onNext, onBack }) {
   const { publicBase } = useSalon();
-  const [professionals, setProfessionals] = useState([]);
+  const [allProfessionals, setAllProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -237,10 +237,15 @@ function ProfessionalStep({ onNext, onBack }) {
     setLoadError(false);
     api
       .get(`${publicBase}/professionals`)
-      .then(setProfessionals)
+      .then(setAllProfessionals)
       .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   }, [reloadKey, publicBase]);
+
+  // Serviço sem profissional vinculado = qualquer um pode atender (mesmo
+  // comportamento de sempre). Com vínculo, só quem está vinculado aparece.
+  const allowedIds = service?.professionals?.length ? new Set(service.professionals.map((p) => p.id)) : null;
+  const professionals = allowedIds ? allProfessionals.filter((p) => allowedIds.has(p.id)) : allProfessionals;
 
   return (
     <StepShell title="Escolha o profissional" subtitle="Quem vai te atender?">
@@ -567,6 +572,7 @@ export default function BookingWizard() {
           />
         ) : step === 2 ? (
           <ProfessionalStep
+            service={booking.service}
             onNext={(professional) => {
               setBooking((b) => ({ ...b, professional }));
               setStep(3);

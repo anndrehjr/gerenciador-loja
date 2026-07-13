@@ -79,13 +79,14 @@ model Salon {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users         User[]
-  clients       Client[]
-  services      Service[]
-  professionals Professional[]
-  workingHours  WorkingHour[]
-  timeOff       TimeOff[]
-  appointments  Appointment[]
+  users                User[]
+  clients              Client[]
+  services             Service[]
+  professionals        Professional[]
+  workingHours         WorkingHour[]
+  timeOff              TimeOff[]
+  appointments         Appointment[]
+  serviceProfessionals ServiceProfessional[]
 }
 
 model User {
@@ -131,10 +132,29 @@ model Service {
   updatedAt       DateTime      @updatedAt
   appointments    Appointment[]
 
+  // Sem nenhum vínculo aqui = qualquer profissional do salão pode realizar
+  // o serviço (comportamento de sempre). Só passa a restringir quando o
+  // dono do salão vincula profissionais específicos.
+  professionals ServiceProfessional[]
+
   salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
   salonId String
 
   @@unique([salonId, name])
+}
+
+model ServiceProfessional {
+  service        Service      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId      String
+  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  professionalId String
+
+  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  salonId String
+
+  @@id([serviceId, professionalId])
+  @@index([professionalId])
+  @@index([salonId])
 }
 
 model Professional {
@@ -149,6 +169,7 @@ model Professional {
   workingHours WorkingHour[]
   timeOff      TimeOff[]
   appointments Appointment[]
+  services     ServiceProfessional[]
 
   salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
   salonId String
