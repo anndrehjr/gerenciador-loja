@@ -51,6 +51,7 @@ model Salon {
   // antigos); em PRO/PREMIUM, "category" passa a mandar na landing.
   template     String  @default("minimal-studio")
   logoUrl      String?
+  bannerUrl    String?
   primaryColor String?
 
   // Dados cadastrais/comerciais do cliente da plataforma (uso do Painel

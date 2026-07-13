@@ -45,8 +45,8 @@ export default function Hero({ salon, config, path, customization }) {
           <div className="mt-8">{actions}</div>
         </div>
         <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-line">
-          {salon.logoUrl ? (
-            <img src={salon.logoUrl} alt={salon.name} className="h-full w-full object-cover" />
+          {salon.bannerUrl || salon.logoUrl ? (
+            <img src={salon.bannerUrl || salon.logoUrl} alt={salon.name} className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent/25 via-surface to-accent-ink/20">
               <Icon className="h-16 w-16 text-accent-ink/70" />
@@ -70,6 +70,11 @@ export default function Hero({ salon, config, path, customization }) {
         </h1>
         <p className="mx-auto mt-5 max-w-md text-base text-muted">{subheadline}</p>
         <div className="mt-8 flex justify-center">{actions}</div>
+        {salon.bannerUrl && (
+          <div className="mx-auto mt-14 aspect-[16/7] max-w-2xl overflow-hidden rounded-3xl border border-line">
+            <img src={salon.bannerUrl} alt="" className="h-full w-full object-cover" />
+          </div>
+        )}
       </div>
     </section>
   );

@@ -8,6 +8,7 @@ const TEMPLATES = ["beauty-luxury", "premium-barber", "minimal-studio", "spa-zen
 const updateSchema = z.object({
   name: z.string().min(1).optional(),
   logoUrl: z.string().url().optional().nullable(),
+  bannerUrl: z.string().url().optional().nullable(),
   primaryColor: z
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/, "Use um hex válido, ex.: #8B5CF6")
@@ -28,6 +29,7 @@ const SELECT_FIELDS = {
   category: true,
   template: true,
   logoUrl: true,
+  bannerUrl: true,
   primaryColor: true,
   customization: true,
 };

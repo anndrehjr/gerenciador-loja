@@ -1,12 +1,65 @@
 import { useEffect, useState } from "react";
-import { Check, ExternalLink, Lock, Sparkles } from "lucide-react";
+import { Check, ExternalLink, Lock, Sparkles, ChevronUp, ChevronDown } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { api } from "../../lib/api.js";
 import { TEMPLATES } from "../../lib/templates.js";
 import { PLAN_INFO, planFeatures } from "../../lib/plans.js";
 import { salonTypeInfo } from "../../lib/salonTypes.js";
+import { BLOCK_ORDER } from "../../lib/landingTemplates.js";
 import Input from "../../components/ui/Input.jsx";
 import Button from "../../components/ui/Button.jsx";
+
+const REORDERABLE_KEYS = BLOCK_ORDER.filter((k) => k !== "hero" && k !== "footer");
+const BLOCK_LABELS = {
+  about: "Sobre",
+  services: "Serviços",
+  team: "Equipe",
+  gallery: "Galeria",
+  reviews: "Avaliações",
+  instagram: "Instagram",
+  faq: "Perguntas frequentes",
+  contact: "Contato",
+};
+
+function BlockOrderEditor({ order, onChange }) {
+  function move(index, delta) {
+    const next = [...order];
+    const target = index + delta;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    onChange(next);
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {order.map((key, i) => (
+        <div key={key} className="flex items-center justify-between rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm">
+          {BLOCK_LABELS[key] || key}
+          <div className="flex gap-1">
+            <button
+              type="button"
+              onClick={() => move(i, -1)}
+              disabled={i === 0}
+              className="rounded-lg p-1 text-muted transition duration-200 hover:bg-hover hover:text-ink disabled:opacity-30"
+              aria-label="Mover pra cima"
+            >
+              <ChevronUp className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => move(i, 1)}
+              disabled={i === order.length - 1}
+              className="rounded-lg p-1 text-muted transition duration-200 hover:bg-hover hover:text-ink disabled:opacity-30"
+              aria-label="Mover pra baixo"
+            >
+              <ChevronDown className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function TemplatePicker({ value, onChange }) {
   return (
@@ -82,6 +135,7 @@ export default function Settings() {
         name: data.name,
         template: data.template,
         logoUrl: data.logoUrl || "",
+        bannerUrl: data.bannerUrl || "",
         primaryColor: data.primaryColor || "",
       });
       const c = data.customization || {};
@@ -92,6 +146,11 @@ export default function Settings() {
         aboutText: c.aboutText || "",
         instagramHandle: c.instagramHandle || "",
         gallery: Array.isArray(c.gallery) ? c.gallery.join("\n") : "",
+        accentColor: c.accentColor || "",
+        blockOrder:
+          Array.isArray(c.blockOrder) && c.blockOrder.length
+            ? c.blockOrder.filter((k) => REORDERABLE_KEYS.includes(k))
+            : REORDERABLE_KEYS,
       });
     });
   }, []);
@@ -105,7 +164,9 @@ export default function Settings() {
       const payload = {
         name: form.name,
         logoUrl: form.logoUrl || null,
-        ...(exclusive ? {} : { template: form.template, primaryColor: form.primaryColor || null }),
+        ...(exclusive
+          ? { bannerUrl: form.bannerUrl || null }
+          : { template: form.template, primaryColor: form.primaryColor || null }),
       };
       const updated = await api.patch("/salon", payload);
       setSalon(updated);
@@ -133,6 +194,8 @@ export default function Settings() {
           gallery: custom.gallery
             ? custom.gallery.split("\n").map((s) => s.trim()).filter(Boolean)
             : undefined,
+          accentColor: custom.accentColor || undefined,
+          blockOrder: custom.blockOrder,
         },
       };
       const updated = await api.patch("/salon", payload);
@@ -220,6 +283,16 @@ export default function Settings() {
             value={form.logoUrl}
             onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
           />
+
+          {exclusive && (
+            <Input
+              id="bannerUrl"
+              label="URL do banner (imagem de destaque do hero)"
+              placeholder="https://…"
+              value={form.bannerUrl}
+              onChange={(e) => setForm({ ...form, bannerUrl: e.target.value })}
+            />
+          )}
 
           {!exclusive && (
             <>
@@ -316,6 +389,20 @@ export default function Settings() {
               placeholder={"https://…\nhttps://…"}
               className="w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm outline-none transition duration-200 focus:border-accent focus:ring-2 focus:ring-accent/25"
             />
+          </div>
+          <Input
+            id="accentColor"
+            label="Cor de destaque (opcional, substitui o preset do segmento)"
+            placeholder="#8B5CF6"
+            value={custom.accentColor}
+            onChange={(e) => setCustom({ ...custom, accentColor: e.target.value })}
+          />
+          <div>
+            <span className="text-sm font-medium text-ink">Ordem das seções</span>
+            <p className="mt-1 text-xs text-muted">Início e rodapé ficam sempre fixos nas pontas.</p>
+            <div className="mt-2">
+              <BlockOrderEditor order={custom.blockOrder} onChange={(blockOrder) => setCustom({ ...custom, blockOrder })} />
+            </div>
           </div>
 
           {customError && <p className="text-sm text-critical">{customError}</p>}

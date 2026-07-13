@@ -35,7 +35,7 @@ export const TEMPLATES = {
 
 export const DEFAULT_TEMPLATE = "minimal-studio";
 
-function hexToRgbTriplet(hex) {
+export function hexToRgbTriplet(hex) {
   const match = /^#?([0-9a-f]{6})$/i.exec(hex);
   if (!match) return null;
   const int = parseInt(match[1], 16);
