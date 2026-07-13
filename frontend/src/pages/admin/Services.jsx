@@ -5,10 +5,11 @@ import { formatMoney } from "../../lib/format.js";
 import Button from "../../components/ui/Button.jsx";
 import Input from "../../components/ui/Input.jsx";
 
-const EMPTY_FORM = { name: "", description: "", price: "", durationMinutes: "30", active: true };
+const EMPTY_FORM = { name: "", description: "", price: "", durationMinutes: "30", active: true, professionalIds: [] };
 
 export default function Services() {
   const [services, setServices] = useState([]);
+  const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -24,6 +25,18 @@ export default function Services() {
   }
 
   useEffect(load, []);
+  useEffect(() => {
+    api.get("/professionals").then(setProfessionals);
+  }, []);
+
+  function toggleProfessional(id) {
+    setForm((f) => ({
+      ...f,
+      professionalIds: f.professionalIds.includes(id)
+        ? f.professionalIds.filter((p) => p !== id)
+        : [...f.professionalIds, id],
+    }));
+  }
 
   function startCreate() {
     setEditingId(null);
@@ -40,6 +53,7 @@ export default function Services() {
       price: (service.priceCents / 100).toString(),
       durationMinutes: String(service.durationMinutes),
       active: service.active,
+      professionalIds: (service.professionals || []).map((p) => p.id),
     });
     setError("");
     setShowForm(true);
@@ -63,6 +77,7 @@ export default function Services() {
         priceCents,
         durationMinutes,
         active: form.active,
+        professionalIds: form.professionalIds,
       };
       if (editingId) {
         await api.patch(`/services/${editingId}`, payload);
@@ -135,6 +150,33 @@ export default function Services() {
             />
             Ativo no site
           </label>
+
+          {professionals.length > 0 && (
+            <div className="w-full">
+              <span className="text-sm font-medium text-ink">
+                Profissionais que realizam esse serviço (opcional)
+              </span>
+              <p className="mt-0.5 text-xs text-muted">Sem nenhum marcado, qualquer profissional pode atender.</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {professionals.map((p) => {
+                  const checked = form.professionalIds.includes(p.id);
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => toggleProfessional(p.id)}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition duration-200 ${
+                        checked ? "border-accent bg-accent/10 text-accent-ink" : "border-line text-muted hover:bg-hover"
+                      }`}
+                    >
+                      {p.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-2">
             <Button type="submit">{editingId ? "Salvar" : "Adicionar"}</Button>
             <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>
@@ -168,6 +210,11 @@ export default function Services() {
                 </div>
                 {service.description && (
                   <div className="text-sm text-muted">{service.description}</div>
+                )}
+                {service.professionals?.length > 0 && (
+                  <div className="mt-0.5 text-xs text-muted">
+                    Com {service.professionals.map((p) => p.name).join(", ")}
+                  </div>
                 )}
               </div>
               <div className="flex items-center gap-3">

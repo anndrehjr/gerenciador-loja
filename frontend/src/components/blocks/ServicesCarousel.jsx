@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { X, Clock, ArrowRight } from "lucide-react";
+import { X, Clock, ArrowRight, UserRound } from "lucide-react";
 import { formatMoney, formatDuration } from "../../lib/format.js";
 import { salonTypeInfo } from "../../lib/salonTypes.js";
 import Button from "../ui/Button.jsx";
@@ -45,6 +45,12 @@ function ServiceModal({ service, salon, path, onClose }) {
               {formatDuration(service.durationMinutes)}
             </span>
           </div>
+          {service.professionals?.length > 0 && (
+            <div className="mt-3 flex items-start gap-1.5 text-sm text-muted">
+              <UserRound className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span>Com {service.professionals.map((p) => p.name).join(", ")}</span>
+            </div>
+          )}
           <Link to={path("/agendar")} className="mt-6 block">
             <Button className="w-full">
               Agendar agora

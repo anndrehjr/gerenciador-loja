@@ -34,9 +34,21 @@ export async function listPublicServices(req, res) {
   const services = await prisma.service.findMany({
     where: { salonId: req.salonId, active: true },
     orderBy: { name: "asc" },
-    select: { id: true, name: true, description: true, priceCents: true, durationMinutes: true },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      priceCents: true,
+      durationMinutes: true,
+      professionals: { select: { professional: { select: { id: true, name: true } } } },
+    },
   });
-  res.json(services);
+  res.json(
+    services.map(({ professionals, ...service }) => ({
+      ...service,
+      professionals: professionals.map((p) => p.professional),
+    }))
+  );
 }
 
 export async function listPublicProfessionals(req, res) {
@@ -140,6 +152,17 @@ export async function createPublicAppointment(req, res) {
   if (!client) throw new HttpError(404, "Cliente não encontrado.");
   if (!service || !service.active) throw new HttpError(404, "Serviço indisponível.");
   if (!professional || !professional.active) throw new HttpError(404, "Profissional indisponível.");
+
+  // Serviço sem nenhum vínculo aceita qualquer profissional do salão (como
+  // sempre foi); com vínculo, só valida contra quem está de fato vinculado —
+  // reforça no servidor o mesmo filtro que o wizard já aplica na tela.
+  const linkedCount = await prisma.serviceProfessional.count({ where: { serviceId: data.serviceId } });
+  if (linkedCount > 0) {
+    const isLinked = await prisma.serviceProfessional.findUnique({
+      where: { serviceId_professionalId: { serviceId: data.serviceId, professionalId: data.professionalId } },
+    });
+    if (!isLinked) throw new HttpError(400, "Esse profissional não realiza o serviço selecionado.");
+  }
 
   // Checagem + criação rodam na mesma transação serializable: se dois
   // clientes tentarem reservar o mesmo horário ao mesmo tempo, o Postgres
