@@ -176,46 +176,6 @@ function Reveal({ children, delay = 0, className = "" }) {
   );
 }
 
-const AGENDA_ROWS = [
-  { time: "09:00", name: "Camila R.", service: "Corte + Escova" },
-  { time: "10:30", name: "Bruno A.", service: "Barba" },
-  { time: "13:00", name: "Larissa M.", service: "Coloração" },
-  { time: "15:30", name: "Diego S.", service: "Corte" },
-];
-
-// Prévia estilizada do painel — deixa claro do que se trata sem depender de
-// screenshot real nem imagem fictícia com dados que pareçam de verdade.
-function AgendaMockup() {
-  return (
-    <div className="relative rounded-3xl border border-line bg-surface p-5 shadow-soft motion-safe:animate-[float_6s_ease-in-out_infinite]">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-critical/50" />
-          <span className="h-2.5 w-2.5 rounded-full bg-accent/40" />
-          <span className="h-2.5 w-2.5 rounded-full bg-line" />
-        </div>
-        <span className="text-xs font-medium text-muted">Agenda de hoje</span>
-      </div>
-      <div className="mt-4 space-y-2.5">
-        {AGENDA_ROWS.map((row) => (
-          <div
-            key={row.time}
-            className="flex items-center gap-3 rounded-xl border border-line bg-bg/60 px-3 py-2.5"
-          >
-            <span className="w-11 shrink-0 text-xs font-medium tabular-nums text-accent-ink">{row.time}</span>
-            <span className="h-7 w-7 shrink-0 rounded-full bg-gradient-to-br from-accent to-accent-ink" />
-            <div className="min-w-0">
-              <div className="truncate text-sm font-medium">{row.name}</div>
-              <div className="truncate text-xs text-muted">{row.service}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="pointer-events-none absolute -right-6 -top-6 h-28 w-28 rounded-full bg-gradient-to-br from-accent/25 to-accent-ink/15 blur-2xl" />
-    </div>
-  );
-}
-
 function CompareMark({ value }) {
   if (value === true) return <Check className="mx-auto h-4 w-4 text-accent-ink" />;
   if (value === false) return <Minus className="mx-auto h-3.5 w-3.5 text-muted/50" />;
@@ -280,8 +240,8 @@ export default function PlatformHome() {
       <main className="mx-auto max-w-5xl px-6">
         <section className="relative overflow-hidden py-20 sm:py-28">
           <div className="pointer-events-none absolute -left-24 top-0 h-72 w-72 rounded-full bg-gradient-to-br from-accent/20 to-accent-ink/10 blur-3xl" />
-          <div className="relative grid grid-cols-1 items-center gap-14 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="text-center sm:text-left">
+          <div className="relative mx-auto max-w-2xl">
+            <div className="text-center">
               <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-muted">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60 motion-reduce:animate-none" />
@@ -299,11 +259,11 @@ export default function PlatformHome() {
                 </span>
                 , barbearia ou clínica de estética.
               </h1>
-              <p className="mx-auto mt-5 max-w-xl text-lg text-muted sm:mx-0">
+              <p className="mx-auto mt-5 max-w-xl text-lg text-muted">
                 Site próprio, agendamento online, painel administrativo e identidade visual personalizada — tudo em
                 um só lugar, sem precisar mexer em código.
               </p>
-              <div className="relative mt-8 flex flex-col items-center gap-3 sm:flex-row sm:items-start">
+              <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <a href="#contato">
                   <Button>
                     Solicitar demonstração
@@ -315,9 +275,6 @@ export default function PlatformHome() {
                 </a>
               </div>
             </div>
-            <Reveal delay={150} className="hidden lg:block">
-              <AgendaMockup />
-            </Reveal>
           </div>
         </section>
 
@@ -539,13 +496,6 @@ export default function PlatformHome() {
           </div>
         </div>
       </footer>
-
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-8px); }
-        }
-      `}</style>
     </div>
   );
 }
