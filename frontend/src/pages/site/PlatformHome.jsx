@@ -194,7 +194,7 @@ export default function PlatformHome() {
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-accent to-accent-ink">
               <Scissors className="h-3.5 w-3.5 text-white" />
             </div>
-            Plataforma pra Salões
+            Plataforma Style
           </div>
           <nav className="hidden items-center gap-6 text-sm text-muted sm:flex">
             {NAV_LINKS.map((link) => (
@@ -481,7 +481,7 @@ export default function PlatformHome() {
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-accent to-accent-ink">
                   <Scissors className="h-3.5 w-3.5 text-white" />
                 </div>
-                Plataforma pra Salões
+                Plataforma Style
               </div>
               <p className="mt-3 max-w-xs text-sm text-muted">
                 Site, agendamento online e painel administrativo pra salões, barbearias e clínicas de estética.
@@ -504,7 +504,7 @@ export default function PlatformHome() {
             </div>
           </div>
           <div className="mt-10 border-t border-line pt-6 text-xs text-muted">
-            © {new Date().getFullYear()} Plataforma pra Salões. Todos os direitos reservados.
+            © {new Date().getFullYear()} Plataforma Style. Todos os direitos reservados.
           </div>
         </div>
       </footer>
