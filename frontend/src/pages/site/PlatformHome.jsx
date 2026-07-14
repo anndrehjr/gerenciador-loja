@@ -18,6 +18,7 @@ import {
   Wand2,
   Share2,
   Minus,
+  MessageCircle,
 } from "lucide-react";
 import ThemeToggle from "../../components/ThemeToggle.jsx";
 import Button from "../../components/ui/Button.jsx";
@@ -451,13 +452,24 @@ export default function PlatformHome() {
           <p className="mt-4 max-w-lg text-sm text-muted">
             Quer conhecer a plataforma ou contratar pro seu salão? Fale com a gente.
           </p>
-          <a
-            href="mailto:contato@andre-aguiar-jr.com.br"
-            className="mt-6 inline-flex items-center gap-2 text-sm text-accent-ink hover:underline"
-          >
-            <Mail className="h-4 w-4" />
-            contato@andre-aguiar-jr.com.br
-          </a>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+            <a
+              href="mailto:anndreh01@gmail.com"
+              className="inline-flex items-center gap-2 text-sm text-accent-ink hover:underline"
+            >
+              <Mail className="h-4 w-4" />
+              anndreh01@gmail.com
+            </a>
+            <a
+              href="https://wa.me/5518996791377"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 text-sm text-accent-ink hover:underline"
+            >
+              <MessageCircle className="h-4 w-4" />
+              (18) 99679-1377
+            </a>
+          </div>
         </section>
       </main>
 
