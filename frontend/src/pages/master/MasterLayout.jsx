@@ -17,7 +17,7 @@ export default function MasterLayout() {
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link to="/master" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-accent-blue">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-accent to-accent-ink">
               <LayoutGrid className="h-4 w-4 text-white" />
             </div>
             <span className="text-sm font-semibold">Painel Master</span>

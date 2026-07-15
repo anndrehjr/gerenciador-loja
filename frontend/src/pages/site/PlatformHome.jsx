@@ -241,8 +241,8 @@ export default function PlatformHome() {
       <main className="mx-auto max-w-5xl px-6">
         <section className="relative overflow-hidden py-20 sm:py-28">
           <div className="pointer-events-none absolute -left-24 top-0 h-72 w-72 rounded-full bg-gradient-to-br from-accent/20 to-accent-ink/10 blur-3xl" />
-          <div className="relative mx-auto max-w-2xl">
-            <div className="text-center">
+          <div className="relative grid grid-cols-1 items-center gap-14 lg:grid-cols-[1.1fr_1fr] lg:gap-10">
+            <div>
               <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-muted">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60 motion-reduce:animate-none" />
@@ -260,11 +260,11 @@ export default function PlatformHome() {
                 </span>
                 , barbearia ou clínica de estética.
               </h1>
-              <p className="mx-auto mt-5 max-w-xl text-lg text-muted">
+              <p className="mt-5 max-w-md text-lg text-muted">
                 Site próprio, agendamento online, painel administrativo e identidade visual personalizada — tudo em
                 um só lugar, sem precisar mexer em código.
               </p>
-              <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <div className="relative mt-8 flex flex-col gap-3 sm:flex-row">
                 <a href="#contato">
                   <Button>
                     Solicitar demonstração
@@ -274,6 +274,60 @@ export default function PlatformHome() {
                 <a href="#planos">
                   <Button variant="ghost">Ver planos</Button>
                 </a>
+              </div>
+            </div>
+
+            <div className="relative mx-auto w-full max-w-sm lg:mx-0">
+              <div className="pointer-events-none absolute -right-6 -top-6 h-40 w-40 rounded-full bg-gradient-to-br from-accent/25 to-accent-ink/10 blur-3xl" />
+              <div className="relative overflow-hidden rounded-3xl border border-line bg-surface shadow-soft">
+                <div className="flex items-center gap-1.5 border-b border-line px-4 py-3">
+                  <span className="h-2.5 w-2.5 rounded-full bg-line" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-line" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-accent" />
+                </div>
+                <div className="grid grid-cols-[56px_1fr]">
+                  <div className="flex flex-col items-center gap-3 border-r border-line py-5">
+                    <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-accent to-accent-ink" />
+                    {[0, 1, 2, 3].map((i) => (
+                      <span key={i} className={`h-2 w-6 rounded-full ${i === 0 ? "bg-accent-ink" : "bg-hover"}`} />
+                    ))}
+                  </div>
+                  <div className="p-4">
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div className="rounded-xl border border-line bg-bg p-3">
+                        <div className="text-[10px] text-muted">Hoje</div>
+                        <div className="mt-1 text-lg font-semibold">12</div>
+                      </div>
+                      <div className="rounded-xl border border-line bg-bg p-3">
+                        <div className="text-[10px] text-muted">Receita</div>
+                        <div className="mt-1 text-lg font-semibold">R$ 840</div>
+                      </div>
+                    </div>
+                    <div className="mt-2.5 rounded-xl border border-line bg-bg p-3">
+                      <div className="mb-2 text-[10px] text-muted">Agenda de hoje</div>
+                      <div className="space-y-1.5">
+                        {[70, 45, 90].map((w, i) => (
+                          <div key={i} className="h-1.5 rounded-full bg-hover">
+                            <div
+                              className="h-1.5 rounded-full bg-gradient-to-r from-accent to-accent-ink"
+                              style={{ width: `${w}%` }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute -bottom-5 -left-5 hidden items-center gap-2.5 rounded-2xl border border-line bg-surface px-4 py-3 shadow-soft sm:flex">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent-ink">
+                  <Check className="h-4 w-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-medium">Agendamento confirmado</div>
+                  <div className="text-[11px] text-muted">Corte + Barba · 14:30</div>
+                </div>
               </div>
             </div>
           </div>

@@ -29,10 +29,15 @@ export async function resolveSalon(req, res, next) {
 // Para as rotas montadas em /api/public/:salonId — usado pelo site público
 // de cada salão (acesso por /:salonId no frontend). Não depende do Host da
 // requisição, então funciona pra qualquer salão a partir do mesmo domínio
-// da plataforma.
+// da plataforma. Aceita tanto o slug (URL bonita, ex.: /salao-andre — o que
+// o painel master mostra pro dono do salão compartilhar) quanto o id cru
+// (compatibilidade com links já gerados antes do slug existir).
 export async function resolveSalonByParam(req, res, next) {
   const salon = await prisma.salon.findFirst({
-    where: { id: req.params.salonId, status: "ACTIVE" },
+    where: {
+      status: "ACTIVE",
+      OR: [{ slug: req.params.salonId }, { id: req.params.salonId }],
+    },
   });
 
   if (!salon) {
