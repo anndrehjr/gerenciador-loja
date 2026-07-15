@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Plus, Pencil, PauseCircle, PlayCircle, Trash2, Store, Users, CalendarClock } from "lucide-react";
 import { api } from "../../lib/api.js";
 import StatTile from "../../components/ui/StatTile.jsx";
+import Button from "../../components/ui/Button.jsx";
 
 const STATUS_LABEL = { ACTIVE: "Ativo", SUSPENDED: "Suspenso" };
 
@@ -62,12 +63,11 @@ export default function MasterDashboard() {
           <h1 className="text-lg font-semibold">Salões</h1>
           <p className="mt-1 text-sm text-muted">Todos os salões cadastrados na plataforma.</p>
         </div>
-        <Link
-          to="/master/salons/new"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-violet-500 to-accent px-4 py-2.5 text-sm font-medium text-white shadow-soft transition duration-200 hover:-translate-y-0.5 hover:shadow-glow"
-        >
-          <Plus className="h-4 w-4" />
-          Novo salão
+        <Link to="/master/salons/new">
+          <Button>
+            <Plus className="h-4 w-4" />
+            Novo salão
+          </Button>
         </Link>
       </div>
 
@@ -91,7 +91,7 @@ export default function MasterDashboard() {
                   <StatusChip status={salon.status} />
                 </div>
                 <div className="mt-1 text-sm text-muted">
-                  {salon.domain || `${window.location.origin}/${salon.id}`} · plano {salon.plan}
+                  {salon.domain || `${window.location.origin}/${salon.slug}`} · plano {salon.plan}
                 </div>
                 <div className="mt-1 text-xs text-muted">
                   {salon._count.clients} clientes · {salon._count.services} serviços ·{" "}

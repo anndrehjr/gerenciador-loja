@@ -47,9 +47,19 @@ export async function logout(req, res) {
 }
 
 export async function me(req, res) {
-  const user = await prisma.user.findUnique({ where: { id: req.user.sub } });
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.sub },
+    include: { salon: { select: { name: true } } },
+  });
   if (!user) {
     throw new HttpError(401, "Sessão inválida.");
   }
-  res.json({ id: user.id, name: user.name, email: user.email, role: user.role, salonId: user.salonId });
+  res.json({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    salonId: user.salonId,
+    salonName: user.salon?.name ?? null,
+  });
 }
