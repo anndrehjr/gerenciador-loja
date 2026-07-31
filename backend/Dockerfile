@@ -15,4 +15,4 @@ RUN chown -R node:node /app
 USER node
 
 EXPOSE 4000
-CMD ["sh", "-c", "npx prisma migrate deploy && node src/server.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node src/servidor.js"]

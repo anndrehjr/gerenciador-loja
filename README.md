@@ -123,19 +123,34 @@ sem acesso ao painel operacional de cada cliente.
 <tr><td>
 
 **Painel administrativo (por salão)**
-- ✅ CRUD de clientes, serviços e profissionais
+- ✅ CRUD de clientes (com histórico, aniversário, observações e tag VIP), serviços e profissionais
 - ✅ Vínculo opcional serviço ↔ profissional
 - ✅ Horários de trabalho e ausências por profissional
 - ✅ Gestão de agendamentos (status, observações)
 - ✅ Login com sessão JWT em cookie httpOnly
+- ✅ **Equipe com papéis** (`DONO`/`GERENTE`/`PROFISSIONAL`/`RECEPCIONISTA`) — cada um só vê o que o próprio papel permite
+- ✅ **Financeiro**: registro de pagamento (dinheiro/Pix/cartão) e despesas por categoria, comissão por profissional, dashboard de faturamento/despesas/lucro
+- ✅ **Estoque**: produtos, categorias, movimentação de entrada/saída, alerta de estoque baixo/vencido
+- ✅ **Notificações**: sino no painel com aniversariante, pagamento recebido, cancelamento, estoque baixo, comissão liberada, assinatura vencendo
+- ✅ **Relatórios**: clientes novos/que sumiram, serviços/profissionais em destaque, crescimento mensal
 
 </td><td>
 
 **Painel Mestre (plataforma)**
 - ✅ CRUD completo de salões assinantes
 - ✅ Definição de plano, categoria e status do contrato
-- ✅ Ativar/suspender salão
+- ✅ Ativar/suspender salão (soft delete — nenhum dado é apagado na hora)
 - ✅ Dados cadastrais/comerciais do cliente da plataforma
+
+</td></tr>
+<tr><td colspan="2">
+
+**Onboarding, conta & segurança**
+- ✅ **Cadastro público self-service** (`/criar-conta`) — negócio, tipo, conta, 1º serviço e 1º profissional num wizard guiado, já termina logado
+- ✅ Teste grátis de 14 dias por assinatura (`Assinatura`/`Plano`), com bloqueio automático no login quando vence
+- ✅ Redefinição de senha por e-mail (`/esqueci-senha` → link com token de 1h → `/trocar-senha`) e troca da própria senha logado
+- ✅ Log de auditoria (quem fez o quê, quando e de qual IP) nas ações sensíveis
+- ✅ Adaptador de cobrança preparado (`servicos/cobranca.servico.js`) — pronto pra plugar Stripe/Mercado Pago/Pagar.me
 
 </td></tr>
 <tr><td colspan="2">
@@ -144,6 +159,8 @@ sem acesso ao painel operacional de cada cliente.
 - ✅ WhatsApp (Cloud API oficial da Meta): confirmação, lembrete (job periódico) e cancelamento — opcional, desligado por padrão
 - ✅ App Android via Capacitor, apontando para o site publicado
 - ✅ Headers de segurança (helmet), rate limiting e CORS restrito
+- ✅ Design system próprio (`componentes/ui`) com skeleton loading e notificações globais (`mostrarMensagem`)
+- ✅ Code-splitting por rota (`React.lazy`) e paginação nas listagens da API
 
 </td></tr>
 </table>
@@ -160,8 +177,11 @@ sem acesso ao painel operacional de cada cliente.
 | Personalização completa (copy/ordem/blocos) | ❌ | ❌ | ✅ |
 
 > [!NOTE]
-> Sem cobrança automática ainda — o plano é definido pelo Mestre ao cadastrar/editar o salão, e
-> `RECURSOS_PLANO` (`backend/src/biblioteca/planos.js`) controla o que cada plano libera.
+> `RECURSOS_PLANO` (`backend/src/biblioteca/planos.js`) controla o que cada plano libera na landing/site.
+> Já existe uma camada de assinatura (`Plano`/`Assinatura`/`Fatura`) com teste grátis de 14 dias e
+> bloqueio automático por vencimento — falta só plugar um gateway real (Stripe/Mercado Pago/Pagar.me)
+> no adaptador em `backend/src/servicos/cobranca.servico.js`; hoje o único adaptador é o "manual"
+> (Mestre ativa/edita a assinatura pelo Painel Mestre).
 
 ---
 
@@ -267,10 +287,11 @@ sequenceDiagram
 gerenciador-loja/
 ├── backend/
 │   ├── src/
-│   │   ├── controladores/       # regras de cada recurso (agendamentos, clientes, mestre...)
-│   │   ├── rotas/                # mapeamento HTTP -> controlador
-│   │   ├── middleware/           # autenticação, resolução de salão, tratamento de erros
-│   │   ├── biblioteca/           # prisma client, disponibilidade, planos, whatsapp, job de lembrete
+│   │   ├── controladores/       # regras de cada recurso (agendamentos, clientes, mestre, equipe, financeiro...)
+│   │   ├── rotas/                # mapeamento HTTP -> controlador (+ verificarPermissao por recurso)
+│   │   ├── middleware/           # autenticação, permissões (RBAC), resolução de salão, tratamento de erros
+│   │   ├── servicos/              # regras que cruzam mais de um controlador (equipe, auditoria, assinatura, cobrança, onboarding)
+│   │   ├── biblioteca/           # prisma client, disponibilidade, planos, permissões, paginação, whatsapp, job de lembrete
 │   │   ├── utilitarios/          # jwt, senha, telefone, wrapper de rota assíncrona
 │   │   ├── configuracao/         # validação de variáveis de ambiente (zod)
 │   │   └── servidor.js / aplicacao.js
@@ -279,12 +300,15 @@ gerenciador-loja/
 ├── frontend/
 │   ├── src/
 │   │   ├── paginas/
-│   │   │   ├── site/              # landing da plataforma, site do salão, wizard de agendamento
-│   │   │   ├── administrativo/    # painel do salão (clientes, serviços, agenda...)
+│   │   │   ├── site/              # landing, site do salão, wizard de agendamento, cadastro público, senha
+│   │   │   ├── administrativo/    # painel do salão (clientes, serviços, agenda, equipe, financeiro, relatórios...)
 │   │   │   └── mestre/             # painel mestre (CRUD de salões)
-│   │   ├── componentes/blocos/    # blocos da landing por salão (hero, equipe, galeria, FAQ...)
-│   │   ├── contextos/             # autenticação e contexto do salão atual
-│   │   └── biblioteca/            # planos, helpers de API
+│   │   ├── componentes/
+│   │   │   ├── ui/                 # design system (Botao, Cartao, Tabela, Modal, Esqueleto, Mensagem...)
+│   │   │   └── blocos/             # blocos da landing por salão (hero, equipe, galeria, FAQ...)
+│   │   ├── contextos/             # autenticação, tema, notificações globais e contexto do salão atual
+│   │   ├── ganchos/                # hooks compartilhados (ex.: usePermissao)
+│   │   └── biblioteca/            # planos, permissões, helpers de API/formatação
 │   ├── android/                   # app Android gerado via Capacitor
 │   └── Dockerfile
 ├── deploy/
@@ -304,14 +328,20 @@ gerenciador-loja/
 - Multi-tenant com Painel Mestre completo
 - Site público por salão com templates por segmento
 - Assistente de agendamento com cálculo real de disponibilidade
-- Painel administrativo (clientes, serviços, profissionais, agenda)
+- Painel administrativo (clientes, serviços, profissionais, agenda, equipe, financeiro, relatórios)
+- RBAC por papel de equipe (`DONO`/`GERENTE`/`PROFISSIONAL`/`RECEPCIONISTA`)
+- Cadastro público self-service com teste grátis de 14 dias
+- Redefinição de senha e log de auditoria
 - Notificações via WhatsApp Cloud API
 - App Android via Capacitor
 
 </td><td>
 
 - Domínio próprio por salão (`Salao.dominio` — resolução já existe, falta ativar em produção)
-- Cobrança automática por plano (hoje é definido manualmente pelo Mestre)
+- Gateway de cobrança real plugado (schema e adaptador já preparados — falta a integração em si)
+- Reconstrução da Agenda como calendário (dia/semana/mês, arrastar para reagendar)
+- App mobile dedicado ao profissional (hoje o Android só empacota o site)
+- Envio de e-mail transacional de verdade (redefinição de senha hoje só loga o link no servidor)
 - Publicação do app Android na Play Store
 
 </td></tr>
@@ -342,7 +372,8 @@ cd backend
 cp .env.example .env   # preencher DATABASE_URL, JWT_SECRET etc.
 npm install
 npx prisma migrate deploy
-npm run seed             # opcional — dados de exemplo
+npm run seed             # opcional — um salão de exemplo
+npm run seed:demo        # opcional — dezenas de empresas fictícias completas, ver DOCUMENTACAO/SeedDemonstrativo.md
 npm run dev               # http://localhost:4000
 ```
 
@@ -410,6 +441,25 @@ npm run test
 | `POST/DELETE /api/professionals/:id/time-off[/:ausenciaId]` | Férias/ausências |
 | `GET/POST /api/appointments` · `GET/PATCH/DELETE /api/appointments/:id` | CRUD de agendamentos |
 | `GET/PATCH /api/salon` | Dados do salão do usuário logado |
+| `GET/POST /api/team` · `PATCH/DELETE /api/team/:id` | Equipe do salão — convidar, trocar papel, remover (`DONO`/`GERENTE`) |
+| `GET /api/finance/summary` · `GET/POST /api/finance/payments` | Dashboard financeiro e registro de pagamentos (`DONO`) |
+| `GET /api/reports/overview` | Relatórios (clientes novos/sumidos, destaques, crescimento) (`DONO`) |
+
+> [!TIP]
+> Listagens (`/clients`, `/services`, `/professionals`, `/appointments`) aceitam `?pagina=` e
+> `?limite=` (padrão 100, teto 200) e devolvem o total no header `X-Total-Count`.
+
+</details>
+
+<details>
+<summary><strong>Cadastro & senha — <code>/api/signup</code>, <code>/api/auth</code></strong></summary>
+
+| Rota | Descrição |
+|---|---|
+| `POST /api/signup` | Cadastro público self-service — cria salão + conta + assinatura em teste, já loga |
+| `POST /api/auth/esqueci-senha` | Gera token de redefinição (válido 1h) |
+| `POST /api/auth/trocar-senha` | Troca a senha a partir do token |
+| `PATCH /api/auth/minha-senha` | Troca a própria senha estando logado |
 
 </details>
 
@@ -450,15 +500,21 @@ PostgreSQL via Prisma, schema em [`backend/prisma/schema.prisma`](backend/prisma
 |---|---|
 | `Salao` | Cada assinante da plataforma — limite de isolamento de todo dado operacional |
 | `Usuario` | Login do painel do salão (`ADMINISTRADOR`) ou da equipe da plataforma (`MESTRE`) |
+| `MembroEquipe` | Papel granular de um `Usuario` dentro de um `Salao` (`DONO`/`GERENTE`/`PROFISSIONAL`/`RECEPCIONISTA`) |
 | `Cliente`, `Servico`, `Profissional` | Cadastros operacionais, sempre vinculados a um `Salao` |
 | `ServicoProfissional` | Vínculo opcional serviço ↔ profissional específico |
 | `HorarioTrabalho`, `Ausencia` | Jornada de trabalho e férias/folgas por profissional |
 | `Agendamento` | Reserva de um cliente com um serviço (e opcionalmente um profissional) |
+| `Pagamento`, `Comissao` | Financeiro operacional do salão — valor recebido por agendamento e comissão do profissional |
+| `Plano`, `Assinatura`, `Fatura` | Cobrança da própria plataforma — teste grátis, status e faturas (gateway real ainda não plugado) |
+| `TokenRedefinicaoSenha` | Token de uso único (hash, nunca o valor bruto) pra redefinir senha |
+| `LogAuditoria` | Quem fez o quê, quando e de qual IP, nas ações sensíveis |
 
 > [!IMPORTANT]
 > Todo modelo operacional carrega `salaoId` e é filtrado por ele em toda query — é esse campo,
 > reforçado pelos middlewares `exigirSalao`/`resolverSalaoPorParametro`, que garante que um salão
-> nunca enxergue dado de outro.
+> nunca enxergue dado de outro. `Salao`, `Cliente`, `Servico`, `Profissional` e `Agendamento` usam
+> **soft delete** (`deletadoEm`) — excluir nunca apaga o histórico na hora.
 
 ---
 
@@ -538,14 +594,17 @@ desenvolvedor Apple (US$99/ano).
 | Medida | Implementação |
 |---|---|
 | Isolamento entre salões | `salaoId` obrigatório em toda query operacional, reforçado por middleware |
+| Permissões por papel (RBAC) | `verificarPermissao()` — `DONO`/`GERENTE`/`PROFISSIONAL`/`RECEPCIONISTA`, com escopo de dado (não só de tela) pra `PROFISSIONAL` |
 | Senhas | Hash com `bcryptjs`, nunca em texto plano |
 | Sessão | JWT em cookie **httpOnly**, `COOKIE_SECURE` obrigatório em produção |
+| Redefinição de senha | Token de uso único, expira em 1h, só o hash fica no banco |
+| Auditoria | `LogAuditoria` registra ator, ação, entidade e IP nas operações sensíveis |
 | IP real do visitante | `trust proxy` fixado em 3 saltos — evita spoofing de `X-Forwarded-For` |
-| Rate limiting | Global, dedicado em `/auth/login` e dedicado nas rotas públicas de agendamento |
+| Rate limiting | Global, dedicado em `/auth/login`, `/auth/esqueci-senha`, `/signup` e nas rotas públicas de agendamento |
 | Headers HTTP | `helmet` |
 | CORS | Restrito a `CORS_ORIGIN` configurado |
 | Segredos | `.env` fora do controle de versão; variáveis validadas com `zod` na subida da API |
-| Banco de dados | Porta publicada só em `127.0.0.1` no VPS — sem exposição externa |
+| Banco de dados | Porta publicada só em `127.0.0.1` no VPS — sem exposição externa; soft delete evita perda acidental |
 
 ---
 

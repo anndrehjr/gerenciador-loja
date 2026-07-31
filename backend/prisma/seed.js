@@ -1,207 +1,215 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { normalizePhone } from "../src/utils/phone.js";
+import { normalizarTelefone } from "../src/utilitarios/telefone.js";
 
 const prisma = new PrismaClient();
 
-const SERVICES = [
-  { name: "Corte feminino", priceCents: 8000, durationMinutes: 45, description: "Corte + finalização" },
-  { name: "Corte masculino", priceCents: 5000, durationMinutes: 30, description: "Corte na tesoura e/ou máquina" },
-  { name: "Corte infantil", priceCents: 4000, durationMinutes: 30, description: "Até 10 anos" },
-  { name: "Coloração", priceCents: 15000, durationMinutes: 120, description: "Coloração completa" },
-  { name: "Mechas / Luzes", priceCents: 18000, durationMinutes: 150, description: "Técnica de mechas com papel alumínio" },
-  { name: "Hidratação", priceCents: 7000, durationMinutes: 45, description: "Hidratação profunda com máscara" },
-  { name: "Escova", priceCents: 6000, durationMinutes: 40, description: "Escova modeladora" },
-  { name: "Penteado para festa", priceCents: 12000, durationMinutes: 60, description: "Penteado + finalização para eventos" },
-  { name: "Barba", priceCents: 3500, durationMinutes: 20, description: "Modelagem completa com toalha quente" },
-  { name: "Design de sobrancelha", priceCents: 2500, durationMinutes: 15, description: "Design com pinça e linha" },
-  { name: "Manicure", priceCents: 4000, durationMinutes: 40, description: "Cutilagem e esmaltação" },
-  { name: "Pedicure", priceCents: 4500, durationMinutes: 40, description: "Cutilagem e esmaltação dos pés" },
+const SERVICOS = [
+  { nome: "Corte feminino", precoCentavos: 8000, duracaoMinutos: 45, descricao: "Corte + finalização" },
+  { nome: "Corte masculino", precoCentavos: 5000, duracaoMinutos: 30, descricao: "Corte na tesoura e/ou máquina" },
+  { nome: "Corte infantil", precoCentavos: 4000, duracaoMinutos: 30, descricao: "Até 10 anos" },
+  { nome: "Coloração", precoCentavos: 15000, duracaoMinutos: 120, descricao: "Coloração completa" },
+  { nome: "Mechas / Luzes", precoCentavos: 18000, duracaoMinutos: 150, descricao: "Técnica de mechas com papel alumínio" },
+  { nome: "Hidratação", precoCentavos: 7000, duracaoMinutos: 45, descricao: "Hidratação profunda com máscara" },
+  { nome: "Escova", precoCentavos: 6000, duracaoMinutos: 40, descricao: "Escova modeladora" },
+  { nome: "Penteado para festa", precoCentavos: 12000, duracaoMinutos: 60, descricao: "Penteado + finalização para eventos" },
+  { nome: "Barba", precoCentavos: 3500, duracaoMinutos: 20, descricao: "Modelagem completa com toalha quente" },
+  { nome: "Design de sobrancelha", precoCentavos: 2500, duracaoMinutos: 15, descricao: "Design com pinça e linha" },
+  { nome: "Manicure", precoCentavos: 4000, duracaoMinutos: 40, descricao: "Cutilagem e esmaltação" },
+  { nome: "Pedicure", precoCentavos: 4500, duracaoMinutos: 40, descricao: "Cutilagem e esmaltação dos pés" },
 ];
 
-const PROFESSIONALS = [
+const PROFISSIONAIS = [
   {
-    name: "Camila Duarte",
-    specialty: "Coloração e mechas",
+    nome: "Camila Duarte",
+    especialidade: "Coloração e mechas",
     bio: "Especialista em coloração com 8 anos de experiência.",
-    workingHours: [1, 2, 3, 4, 5].map((weekday) => ({ weekday, startMinute: 9 * 60, endMinute: 18 * 60 })),
+    horariosTrabalho: [1, 2, 3, 4, 5].map((diaSemana) => ({
+      diaSemana,
+      minutoInicio: 9 * 60,
+      minutoFim: 18 * 60,
+    })),
   },
   {
-    name: "Rodrigo Nunes",
-    specialty: "Cortes masculinos e barba",
+    nome: "Rodrigo Nunes",
+    especialidade: "Cortes masculinos e barba",
     bio: "Barbeiro clássico, especialista em navalha.",
-    workingHours: [2, 3, 4, 5, 6].map((weekday) => ({ weekday, startMinute: 10 * 60, endMinute: 19 * 60 })),
+    horariosTrabalho: [2, 3, 4, 5, 6].map((diaSemana) => ({
+      diaSemana,
+      minutoInicio: 10 * 60,
+      minutoFim: 19 * 60,
+    })),
   },
 ];
 
-const CLIENTS = [
-  { name: "Maria Oliveira", email: "maria.oliveira@example.com", phone: "(11) 98111-2233" },
-  { name: "Ana Souza", email: "ana.souza@example.com", phone: "(11) 98222-3344" },
-  { name: "Juliana Costa", email: "juliana.costa@example.com", phone: "(11) 98333-4455" },
-  { name: "Fernanda Lima", email: "fernanda.lima@example.com", phone: "(11) 98444-5566" },
-  { name: "Patrícia Alves", email: "patricia.alves@example.com", phone: "(11) 98555-6677" },
-  { name: "Camila Rocha", email: "camila.rocha@example.com", phone: "(11) 98666-7788" },
-  { name: "Beatriz Santos", email: "beatriz.santos@example.com", phone: "(11) 98777-8899" },
-  { name: "Larissa Pereira", email: "larissa.pereira@example.com", phone: "(11) 98888-9900" },
-  { name: "Rafael Almeida", email: "rafael.almeida@example.com", phone: "(11) 97111-2233" },
-  { name: "Bruno Carvalho", email: "bruno.carvalho@example.com", phone: "(11) 97222-3344" },
-  { name: "Gustavo Mendes", email: "gustavo.mendes@example.com", phone: "(11) 97333-4455" },
-  { name: "Lucas Ferreira", email: "lucas.ferreira@example.com", phone: "(11) 97444-5566" },
+const CLIENTES = [
+  { nome: "Maria Oliveira", email: "maria.oliveira@example.com", telefone: "(11) 98111-2233" },
+  { nome: "Ana Souza", email: "ana.souza@example.com", telefone: "(11) 98222-3344" },
+  { nome: "Juliana Costa", email: "juliana.costa@example.com", telefone: "(11) 98333-4455" },
+  { nome: "Fernanda Lima", email: "fernanda.lima@example.com", telefone: "(11) 98444-5566" },
+  { nome: "Patrícia Alves", email: "patricia.alves@example.com", telefone: "(11) 98555-6677" },
+  { nome: "Camila Rocha", email: "camila.rocha@example.com", telefone: "(11) 98666-7788" },
+  { nome: "Beatriz Santos", email: "beatriz.santos@example.com", telefone: "(11) 98777-8899" },
+  { nome: "Larissa Pereira", email: "larissa.pereira@example.com", telefone: "(11) 98888-9900" },
+  { nome: "Rafael Almeida", email: "rafael.almeida@example.com", telefone: "(11) 97111-2233" },
+  { nome: "Bruno Carvalho", email: "bruno.carvalho@example.com", telefone: "(11) 97222-3344" },
+  { nome: "Gustavo Mendes", email: "gustavo.mendes@example.com", telefone: "(11) 97333-4455" },
+  { nome: "Lucas Ferreira", email: "lucas.ferreira@example.com", telefone: "(11) 97444-5566" },
 ];
 
 // deslocamento em dias a partir de hoje, hora do dia, status e observação opcional
-const APPOINTMENT_PLAN = [
-  { dayOffset: -12, hour: 14, status: "CONCLUIDO" },
-  { dayOffset: -10, hour: 10, status: "CONCLUIDO" },
-  { dayOffset: -9, hour: 16, status: "CONCLUIDO" },
-  { dayOffset: -7, hour: 9, status: "CONCLUIDO" },
-  { dayOffset: -6, hour: 15, status: "CONCLUIDO", notes: "Cliente pediu tom mais claro na próxima vez" },
-  { dayOffset: -4, hour: 11, status: "CONCLUIDO" },
-  { dayOffset: -3, hour: 13, status: "CANCELADO", notes: "Cliente remarcou" },
-  { dayOffset: -2, hour: 17, status: "CONCLUIDO" },
-  { dayOffset: -1, hour: 10, status: "CONCLUIDO" },
-  { dayOffset: 0, hour: 16, status: "CONFIRMADO" },
-  { dayOffset: 1, hour: 9, status: "CONFIRMADO" },
-  { dayOffset: 1, hour: 14, status: "AGENDADO" },
-  { dayOffset: 2, hour: 11, status: "AGENDADO" },
-  { dayOffset: 3, hour: 15, status: "AGENDADO", notes: "Primeira vez no salão" },
-  { dayOffset: 4, hour: 10, status: "AGENDADO" },
-  { dayOffset: 5, hour: 13, status: "AGENDADO" },
-  { dayOffset: 6, hour: 16, status: "CANCELADO" },
-  { dayOffset: 8, hour: 9, status: "AGENDADO" },
-  { dayOffset: 10, hour: 14, status: "AGENDADO" },
+const PLANO_AGENDAMENTOS = [
+  { diasOffset: -12, hora: 14, status: "CONCLUIDO" },
+  { diasOffset: -10, hora: 10, status: "CONCLUIDO" },
+  { diasOffset: -9, hora: 16, status: "CONCLUIDO" },
+  { diasOffset: -7, hora: 9, status: "CONCLUIDO" },
+  { diasOffset: -6, hora: 15, status: "CONCLUIDO", observacoes: "Cliente pediu tom mais claro na próxima vez" },
+  { diasOffset: -4, hora: 11, status: "CONCLUIDO" },
+  { diasOffset: -3, hora: 13, status: "CANCELADO", observacoes: "Cliente remarcou" },
+  { diasOffset: -2, hora: 17, status: "CONCLUIDO" },
+  { diasOffset: -1, hora: 10, status: "CONCLUIDO" },
+  { diasOffset: 0, hora: 16, status: "CONFIRMADO" },
+  { diasOffset: 1, hora: 9, status: "CONFIRMADO" },
+  { diasOffset: 1, hora: 14, status: "AGENDADO" },
+  { diasOffset: 2, hora: 11, status: "AGENDADO" },
+  { diasOffset: 3, hora: 15, status: "AGENDADO", observacoes: "Primeira vez no salão" },
+  { diasOffset: 4, hora: 10, status: "AGENDADO" },
+  { diasOffset: 5, hora: 13, status: "AGENDADO" },
+  { diasOffset: 6, hora: 16, status: "CANCELADO" },
+  { diasOffset: 8, hora: 9, status: "AGENDADO" },
+  { diasOffset: 10, hora: 14, status: "AGENDADO" },
 ];
 
-function ensureService(salonId, data) {
-  return prisma.service.upsert({
-    where: { salonId_name: { salonId, name: data.name } },
-    update: { durationMinutes: data.durationMinutes },
-    create: { ...data, salonId },
+function garantirServico(salaoId, dados) {
+  return prisma.servico.upsert({
+    where: { salaoId_nome: { salaoId, nome: dados.nome } },
+    update: { duracaoMinutos: dados.duracaoMinutos },
+    create: { ...dados, salaoId },
   });
 }
 
-function ensureClient(salonId, data) {
-  return prisma.client.upsert({
-    where: { salonId_email: { salonId, email: data.email } },
+function garantirCliente(salaoId, dados) {
+  return prisma.cliente.upsert({
+    where: { salaoId_email: { salaoId, email: dados.email } },
     update: {},
-    create: { ...data, salonId, phone: normalizePhone(data.phone) },
+    create: { ...dados, salaoId, telefone: normalizarTelefone(dados.telefone) },
   });
 }
 
-async function ensureProfessional(salonId, data) {
-  let professional = await prisma.professional.findFirst({ where: { salonId, name: data.name } });
-  if (!professional) {
-    professional = await prisma.professional.create({
-      data: { name: data.name, specialty: data.specialty, bio: data.bio, salonId },
+async function garantirProfissional(salaoId, dados) {
+  let profissional = await prisma.profissional.findFirst({ where: { salaoId, nome: dados.nome } });
+  if (!profissional) {
+    profissional = await prisma.profissional.create({
+      data: { nome: dados.nome, especialidade: dados.especialidade, bio: dados.bio, salaoId },
     });
-    await prisma.workingHour.createMany({
-      data: data.workingHours.map((h) => ({ ...h, professionalId: professional.id, salonId })),
+    await prisma.horarioTrabalho.createMany({
+      data: dados.horariosTrabalho.map((h) => ({ ...h, profissionalId: profissional.id, salaoId })),
     });
   }
-  return professional;
+  return profissional;
 }
 
-function dateAt(dayOffset, hour) {
-  const date = new Date();
-  date.setDate(date.getDate() + dayOffset);
-  date.setHours(hour, 0, 0, 0);
-  return date;
+function dataEm(diasOffset, hora) {
+  const data = new Date();
+  data.setDate(data.getDate() + diasOffset);
+  data.setHours(hora, 0, 0, 0);
+  return data;
 }
 
 async function main() {
-  const salonSlug = process.env.SEED_SALON_SLUG || "salao-andre";
-  const salonName = process.env.SEED_SALON_NAME || "Salão";
-  const salonDomain = process.env.SEED_SALON_DOMAIN || null;
+  const salaoSlug = process.env.SEED_SALAO_SLUG || "salao-andre";
+  const salaoNome = process.env.SEED_SALAO_NOME || "Salão";
+  const salaoDominio = process.env.SEED_SALAO_DOMINIO || null;
 
-  const salon = await prisma.salon.upsert({
-    where: { slug: salonSlug },
+  const salao = await prisma.salao.upsert({
+    where: { slug: salaoSlug },
     update: {},
-    create: { slug: salonSlug, name: salonName, domain: salonDomain },
+    create: { slug: salaoSlug, nome: salaoNome, dominio: salaoDominio },
   });
-  console.log(`Salão pronto: ${salon.name} (${salon.slug})`);
+  console.log(`Salão pronto: ${salao.nome} (${salao.slug})`);
 
-  const adminEmail = process.env.SEED_ADMIN_EMAIL || "admin@salao.local";
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD;
+  const emailAdmin = process.env.SEED_ADMIN_EMAIL || "admin@salao.local";
+  const senhaAdmin = process.env.SEED_ADMIN_SENHA;
 
-  if (!adminPassword) {
+  if (!senhaAdmin) {
     throw new Error(
-      "Defina SEED_ADMIN_PASSWORD no ambiente antes de rodar o seed (ex.: SEED_ADMIN_PASSWORD=... npm run seed)."
+      "Defina SEED_ADMIN_SENHA no ambiente antes de rodar o seed (ex.: SEED_ADMIN_SENHA=... npm run seed)."
     );
   }
 
-  const passwordHash = await bcrypt.hash(adminPassword, 12);
+  const senhaHash = await bcrypt.hash(senhaAdmin, 12);
 
-  const admin = await prisma.user.upsert({
-    where: { email: adminEmail },
-    update: { passwordHash, salonId: salon.id },
+  const admin = await prisma.usuario.upsert({
+    where: { email: emailAdmin },
+    update: { senhaHash, salaoId: salao.id },
     create: {
-      name: "Administrador",
-      email: adminEmail,
-      passwordHash,
-      role: "ADMIN",
-      salonId: salon.id,
+      nome: "Administrador",
+      email: emailAdmin,
+      senhaHash,
+      papel: "ADMINISTRADOR",
+      salaoId: salao.id,
     },
   });
   console.log(`Usuário admin pronto: ${admin.email}`);
 
-  // MASTER opcional — só cria se as duas variáveis forem passadas
-  const masterEmail = process.env.SEED_MASTER_EMAIL;
-  const masterPassword = process.env.SEED_MASTER_PASSWORD;
-  if (masterEmail && masterPassword) {
-    const masterHash = await bcrypt.hash(masterPassword, 12);
-    const master = await prisma.user.upsert({
-      where: { email: masterEmail },
-      update: { passwordHash: masterHash, role: "MASTER", salonId: null },
+  // MESTRE opcional — só cria se as duas variáveis forem passadas
+  const emailMestre = process.env.SEED_MESTRE_EMAIL;
+  const senhaMestre = process.env.SEED_MESTRE_SENHA;
+  if (emailMestre && senhaMestre) {
+    const hashMestre = await bcrypt.hash(senhaMestre, 12);
+    const mestre = await prisma.usuario.upsert({
+      where: { email: emailMestre },
+      update: { senhaHash: hashMestre, papel: "MESTRE", salaoId: null },
       create: {
-        name: "Master",
-        email: masterEmail,
-        passwordHash: masterHash,
-        role: "MASTER",
-        salonId: null,
+        nome: "Mestre",
+        email: emailMestre,
+        senhaHash: hashMestre,
+        papel: "MESTRE",
+        salaoId: null,
       },
     });
-    console.log(`Usuário master pronto: ${master.email}`);
+    console.log(`Usuário mestre pronto: ${mestre.email}`);
   }
 
-  const services = [];
-  for (const data of SERVICES) {
-    services.push(await ensureService(salon.id, data));
+  const servicos = [];
+  for (const dados of SERVICOS) {
+    servicos.push(await garantirServico(salao.id, dados));
   }
-  console.log(`Catálogo de serviços pronto: ${services.length} serviços.`);
+  console.log(`Catálogo de serviços pronto: ${servicos.length} serviços.`);
 
-  const clients = [];
-  for (const data of CLIENTS) {
-    clients.push(await ensureClient(salon.id, data));
+  const clientes = [];
+  for (const dados of CLIENTES) {
+    clientes.push(await garantirCliente(salao.id, dados));
   }
-  console.log(`Clientes prontos: ${clients.length} clientes.`);
+  console.log(`Clientes prontos: ${clientes.length} clientes.`);
 
-  const professionals = [];
-  for (const data of PROFESSIONALS) {
-    professionals.push(await ensureProfessional(salon.id, data));
+  const profissionais = [];
+  for (const dados of PROFISSIONAIS) {
+    profissionais.push(await garantirProfissional(salao.id, dados));
   }
-  console.log(`Profissionais prontos: ${professionals.length} profissionais.`);
+  console.log(`Profissionais prontos: ${profissionais.length} profissionais.`);
 
-  const appointmentCount = await prisma.appointment.count({ where: { salonId: salon.id } });
-  if (appointmentCount === 0) {
-    for (let i = 0; i < APPOINTMENT_PLAN.length; i++) {
-      const plan = APPOINTMENT_PLAN[i];
-      const client = clients[i % clients.length];
-      const service = services[(i * 3) % services.length];
-      const professional = professionals[i % professionals.length];
-      await prisma.appointment.create({
+  const totalAgendamentos = await prisma.agendamento.count({ where: { salaoId: salao.id } });
+  if (totalAgendamentos === 0) {
+    for (let i = 0; i < PLANO_AGENDAMENTOS.length; i++) {
+      const plano = PLANO_AGENDAMENTOS[i];
+      const cliente = clientes[i % clientes.length];
+      const servico = servicos[(i * 3) % servicos.length];
+      const profissional = profissionais[i % profissionais.length];
+      await prisma.agendamento.create({
         data: {
-          salonId: salon.id,
-          clientId: client.id,
-          serviceId: service.id,
-          professionalId: professional.id,
-          date: dateAt(plan.dayOffset, plan.hour),
-          status: plan.status,
-          notes: plan.notes || null,
+          salaoId: salao.id,
+          clienteId: cliente.id,
+          servicoId: servico.id,
+          profissionalId: profissional.id,
+          data: dataEm(plano.diasOffset, plano.hora),
+          status: plano.status,
+          observacoes: plano.observacoes || null,
         },
       });
     }
-    console.log(`Agendamentos de exemplo criados: ${APPOINTMENT_PLAN.length}.`);
+    console.log(`Agendamentos de exemplo criados: ${PLANO_AGENDAMENTOS.length}.`);
   } else {
     console.log("Já existem agendamentos — mantidos como estão.");
   }

@@ -14,9 +14,15 @@ export default {
         accent: "rgb(var(--accent) / <alpha-value>)",
         "accent-ink": "rgb(var(--accent-ink) / <alpha-value>)",
         critical: "rgb(var(--critical) / <alpha-value>)",
+        success: "rgb(var(--success) / <alpha-value>)",
+        warning: "rgb(var(--warning) / <alpha-value>)",
       },
       fontFamily: {
         sans: ["Inter", "-apple-system", "Segoe UI", "Helvetica Neue", "Arial", "sans-serif"],
+        // Acabamento tipográfico da InicioPlataforma.jsx — serifada nos
+        // títulos de seção, monoespaçada nos rótulos pequenos (badge, nav).
+        display: ["Instrument Serif", "Georgia", "serif"],
+        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       borderRadius: {
         xl: "14px",

@@ -4,13 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "nodemon src/server.js",
-    "start": "node src/server.js",
+    "dev": "nodemon src/servidor.js",
+    "start": "node src/servidor.js",
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
     "seed": "node prisma/seed.js",
-    "test": "node --test --test-reporter spec src/**/*.test.js"
+    "seed:demo": "node prisma/seed-demo/index.js",
+    "test": "node --test --test-reporter spec src/**/*.test.js prisma/seed-demo/**/*.test.js"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",

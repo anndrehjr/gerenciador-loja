@@ -7,26 +7,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  ADMIN
-  MASTER
+enum Papel {
+  ADMINISTRADOR
+  MESTRE
 }
 
-enum SalonStatus {
-  ACTIVE
-  SUSPENDED
+// Papel granular de um usuário DENTRO de um salão específico — separado de
+// Papel (que só distingue MESTRE da equipe da plataforma vs. todo o resto).
+// Fica em MembroEquipe, não em Usuario, porque autorização fina (Fase 5) é
+// responsabilidade de outra tabela — Usuario.papel continua decidindo só
+// "em qual painel essa pessoa loga" (não muda, pra não quebrar sessões/JWT
+// já emitidos).
+enum PapelEquipe {
+  DONO
+  GERENTE
+  PROFISSIONAL
+  RECEPCIONISTA
 }
 
-enum ContractStatus {
-  TRIAL
-  ACTIVE
-  PAST_DUE
-  CANCELED
+enum StatusSalao {
+  ATIVO
+  SUSPENSO
+}
+
+enum StatusContrato {
+  TESTE
+  ATIVO
+  ATRASADO
+  CANCELADO
 }
 
 // Segmento de negócio do salão — define qual identidade visual de landing
 // page (template exclusivo) ele recebe nos planos PRO/PREMIUM.
-enum SalonCategory {
+enum CategoriaSalao {
   FEMININO
   BARBEARIA
   UNISSEX
@@ -36,217 +49,560 @@ enum SalonCategory {
 
 // Um salão/barbearia/clínica assinante da plataforma. Todo dado operacional
 // (clientes, serviços, profissionais, agendamentos) pertence a exatamente um
-// Salon — é o limite de isolamento entre clientes da plataforma.
-model Salon {
-  id        String      @id @default(cuid())
-  name      String
-  slug      String      @unique
-  domain    String?     @unique
-  status    SalonStatus   @default(ACTIVE)
-  plan      String        @default("START")
-  category  SalonCategory @default(OUTROS)
+// Salao — é o limite de isolamento entre clientes da plataforma.
+model Salao {
+  id        String         @id @default(cuid())
+  nome      String
+  slug      String         @unique
+  dominio   String?        @unique
+  status    StatusSalao    @default(ATIVO)
+  plano     String         @default("START")
+  categoria CategoriaSalao @default(OUTROS)
 
   // Identidade visual do site público e da tela de login desse salão.
-  // Nos planos START, "template" ainda decide o visual (os 4 modelos
-  // antigos); em PRO/PREMIUM, "category" passa a mandar na landing.
-  template     String  @default("minimal-studio")
-  logoUrl      String?
-  bannerUrl    String?
-  primaryColor String?
+  // No plano START, "template" ainda decide o visual (os 4 modelos
+  // antigos); em PRO/PREMIUM, "categoria" passa a mandar na landing.
+  template    String  @default("minimal-studio")
+  urlLogo     String?
+  urlBanner   String?
+  corPrimaria String?
 
   // Dados cadastrais/comerciais do cliente da plataforma (uso do Painel
-  // Master — nunca exposto nas rotas públicas nem no self-service do salão).
-  document        String?
-  legalName       String?
-  tradeName       String?
-  ownerName       String?
-  ownerPhone      String?
-  ownerWhatsapp   String?
-  ownerEmail      String?
-  city            String?
-  state           String?
-  zipCode         String?
+  // Mestre — nunca exposto nas rotas públicas nem no self-service do salão).
+  documento            String?
+  razaoSocial          String?
+  nomeFantasia         String?
+  nomeProprietario     String?
+  telefoneProprietario String?
+  whatsappProprietario String?
+  emailProprietario    String?
+  cidade               String?
+  estado               String?
+  cep                  String?
 
   // Overrides livres de personalização (plano PREMIUM) — copy do hero, ordem
   // de seções, textos de cada bloco etc. Formato aberto de propósito: cada
   // bloco da landing lê só as chaves que conhece (ver frontend/src/lib/blocks).
-  customization Json?
-  address         String?
-  contractStatus  ContractStatus @default(TRIAL)
-  contractDueDate DateTime?
-  notes           String?
+  personalizacao     Json?
+  endereco           String?
+  statusContrato     StatusContrato @default(TESTE)
+  vencimentoContrato DateTime?
+  observacoes        String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  criadoEm     DateTime  @default(now())
+  atualizadoEm DateTime  @updatedAt
+  deletadoEm   DateTime? // soft delete — excluirSalao passa a marcar em vez de apagar (Fase 12)
 
-  users                User[]
-  clients              Client[]
-  services             Service[]
-  professionals        Professional[]
-  workingHours         WorkingHour[]
-  timeOff              TimeOff[]
-  appointments         Appointment[]
-  serviceProfessionals ServiceProfessional[]
+  usuarios              Usuario[]
+  membrosEquipe         MembroEquipe[]
+  clientes              Cliente[]
+  servicos              Servico[]
+  profissionais         Profissional[]
+  horariosTrabalho      HorarioTrabalho[]
+  ausencias             Ausencia[]
+  agendamentos          Agendamento[]
+  servicosProfissionais ServicoProfissional[]
+  pagamentos            Pagamento[]
+  comissoes             Comissao[]
+  assinatura            Assinatura?
+  logsAuditoria         LogAuditoria[]
+  notificacoes          Notificacao[]
+  despesas              Despesa[]
+  categoriasProduto     CategoriaProduto[]
+  produtos              Produto[]
+  movimentacoesEstoque  MovimentacaoEstoque[]
+  listaEspera           ListaEspera[]
 }
 
-model User {
+// Papel granular de um Usuario dentro de um Salao (Fase 5/6 da evolução SaaS).
+// profissionalId só é preenchido quando papel = PROFISSIONAL — liga o login
+// dessa pessoa ao próprio registro de agenda, pra "somente sua agenda/seus
+// clientes" ser filtrado no controlador (não só escondido na UI).
+model MembroEquipe {
+  id             String        @id @default(cuid())
+  usuario        Usuario       @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId      String
+  salao          Salao         @relation(fields: [salaoId], references: [id], onDelete: Cascade)
+  salaoId        String
+  papel          PapelEquipe
+  profissional   Profissional? @relation(fields: [profissionalId], references: [id], onDelete: SetNull)
+  profissionalId String?
+  criadoEm       DateTime      @default(now())
+  atualizadoEm   DateTime      @updatedAt
+
+  @@unique([usuarioId, salaoId])
+  @@index([salaoId])
+  @@index([profissionalId])
+}
+
+model Usuario {
   id           String   @id @default(cuid())
-  name         String
+  nome         String
   email        String   @unique
-  passwordHash String
-  role         Role     @default(ADMIN)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  senhaHash    String
+  papel        Papel    @default(ADMINISTRADOR)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
 
-  // null só para usuários MASTER (equipe da plataforma, sem salão fixo)
-  salon   Salon?  @relation(fields: [salonId], references: [id], onDelete: Cascade)
-  salonId String?
+  // null só para usuários MESTRE (equipe da plataforma, sem salão fixo)
+  salao   Salao?  @relation(fields: [salaoId], references: [id], onDelete: Cascade)
+  salaoId String?
 
-  @@index([salonId])
+  membrosEquipe          MembroEquipe[]
+  logsAuditoria          LogAuditoria[]
+  tokensRedefinicaoSenha TokenRedefinicaoSenha[]
+
+  @@index([salaoId])
 }
 
-model Client {
-  id           String        @id @default(cuid())
-  name         String
-  email        String?
-  phone        String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  appointments Appointment[]
+model Cliente {
+  id             String        @id @default(cuid())
+  nome           String
+  urlFoto        String?
+  email          String?
+  telefone       String?
+  dataNascimento DateTime?
+  vip            Boolean       @default(false)
+  observacoes    String?
+  criadoEm       DateTime      @default(now())
+  atualizadoEm   DateTime      @updatedAt
+  deletadoEm     DateTime?
+  agendamentos   Agendamento[]
+  listaEspera    ListaEspera[]
 
-  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
-  salonId String
+  // Só um resumo pra tela do dono ver rápido — "serviços favoritos" e
+  // "frequência média" ficam de fora do schema de propósito, dá pra derivar
+  // dos agendamentos sem duplicar dado que fica desatualizado sozinho.
+  profissionalFavorito   Profissional? @relation(fields: [profissionalFavoritoId], references: [id], onDelete: SetNull)
+  profissionalFavoritoId String?
 
-  @@unique([salonId, email])
-  @@unique([salonId, phone])
+  salao   Salao  @relation(fields: [salaoId], references: [id], onDelete: Cascade)
+  salaoId String
+
+  @@unique([salaoId, email])
+  @@unique([salaoId, telefone])
+  @@index([salaoId, vip])
 }
 
-model Service {
-  id              String        @id @default(cuid())
-  name            String
-  description     String?
-  priceCents      Int
-  durationMinutes Int           @default(30)
-  active          Boolean       @default(true)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  appointments    Appointment[]
+model Servico {
+  id             String        @id @default(cuid())
+  nome           String
+  descricao      String?
+  precoCentavos  Int
+  duracaoMinutos Int           @default(30)
+  ativo          Boolean       @default(true)
+  criadoEm       DateTime      @default(now())
+  atualizadoEm   DateTime      @updatedAt
+  deletadoEm     DateTime?
+  agendamentos   Agendamento[]
+  listaEspera    ListaEspera[]
 
   // Sem nenhum vínculo aqui = qualquer profissional do salão pode realizar
   // o serviço (comportamento de sempre). Só passa a restringir quando o
   // dono do salão vincula profissionais específicos.
-  professionals ServiceProfessional[]
+  profissionais ServicoProfissional[]
 
-  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
-  salonId String
+  salao   Salao  @relation(fields: [salaoId], references: [id], onDelete: Cascade)
+  salaoId String
 
-  @@unique([salonId, name])
+  @@unique([salaoId, nome])
 }
 
-model ServiceProfessional {
-  service        Service      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  serviceId      String
-  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
-  professionalId String
+model ServicoProfissional {
+  servico        Servico      @relation(fields: [servicoId], references: [id], onDelete: Cascade)
+  servicoId      String
+  profissional   Profissional @relation(fields: [profissionalId], references: [id], onDelete: Cascade)
+  profissionalId String
 
-  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
-  salonId String
+  salao   Salao  @relation(fields: [salaoId], references: [id], onDelete: Cascade)
+  salaoId String
 
-  @@id([serviceId, professionalId])
-  @@index([professionalId])
-  @@index([salonId])
+  @@id([servicoId, profissionalId])
+  @@index([profissionalId])
+  @@index([salaoId])
 }
 
-model Professional {
-  id           String        @id @default(cuid())
-  name         String
-  photoUrl     String?
-  specialty    String?
-  bio          String?
-  active       Boolean       @default(true)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  workingHours WorkingHour[]
-  timeOff      TimeOff[]
-  appointments Appointment[]
-  services     ServiceProfessional[]
+model Profissional {
+  id                String                @id @default(cuid())
+  nome              String
+  urlFoto           String?
+  especialidade     String?
+  bio               String?
+  ativo             Boolean               @default(true)
+  criadoEm          DateTime              @default(now())
+  atualizadoEm      DateTime              @updatedAt
+  deletadoEm        DateTime?
+  horariosTrabalho  HorarioTrabalho[]
+  ausencias         Ausencia[]
+  agendamentos      Agendamento[]
+  servicos          ServicoProfissional[]
+  membrosEquipe     MembroEquipe[]
+  comissoes         Comissao[]
+  clientesFavoritos Cliente[]
+  listaEspera       ListaEspera[]
 
-  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
-  salonId String
+  salao   Salao  @relation(fields: [salaoId], references: [id], onDelete: Cascade)
+  salaoId String
 
-  @@index([salonId])
+  @@index([salaoId])
 }
 
 // Uma janela de trabalho por dia da semana (0=domingo..6=sábado). Um mesmo
 // dia pode ter mais de uma janela (turno dividido, ex.: manhã e tarde).
 // Sem nenhuma janela num dia = profissional não atende naquele dia.
-model WorkingHour {
-  id             String   @id @default(cuid())
-  weekday        Int
-  startMinute    Int
-  endMinute      Int
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+model HorarioTrabalho {
+  id           String   @id @default(cuid())
+  diaSemana    Int
+  minutoInicio Int
+  minutoFim    Int
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
 
-  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
-  professionalId String
+  profissional   Profissional @relation(fields: [profissionalId], references: [id], onDelete: Cascade)
+  profissionalId String
 
-  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
-  salonId String
+  salao   Salao  @relation(fields: [salaoId], references: [id], onDelete: Cascade)
+  salaoId String
 
-  @@index([professionalId, weekday])
-  @@index([salonId])
+  @@index([profissionalId, diaSemana])
+  @@index([salaoId])
 }
 
 // Período de férias/folga de um profissional (datas, inclusive nos dois
-// extremos). Sobrepõe o WorkingHour normal — o dia fica indisponível.
-model TimeOff {
-  id             String   @id @default(cuid())
-  startDate      DateTime
-  endDate        DateTime
-  reason         String?
-  createdAt      DateTime @default(now())
+// extremos). Sobrepõe o HorarioTrabalho normal — o dia fica indisponível.
+model Ausencia {
+  id         String   @id @default(cuid())
+  dataInicio DateTime
+  dataFim    DateTime
+  motivo     String?
+  criadoEm   DateTime @default(now())
 
-  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
-  professionalId String
+  profissional   Profissional @relation(fields: [profissionalId], references: [id], onDelete: Cascade)
+  profissionalId String
 
-  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
-  salonId String
+  salao   Salao  @relation(fields: [salaoId], references: [id], onDelete: Cascade)
+  salaoId String
 
-  @@index([professionalId])
-  @@index([salonId])
+  @@index([profissionalId])
+  @@index([salaoId])
 }
 
-enum AppointmentStatus {
+enum StatusAgendamento {
   AGENDADO
   CONFIRMADO
+  EM_ATENDIMENTO
   CONCLUIDO
   CANCELADO
+  NAO_COMPARECEU
 }
 
-model Appointment {
-  id             String            @id @default(cuid())
-  date           DateTime
-  status         AppointmentStatus @default(AGENDADO)
-  notes          String?
-  reminderSentAt DateTime?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
+model Agendamento {
+  id                String            @id @default(cuid())
+  data              DateTime
+  status            StatusAgendamento @default(AGENDADO)
+  observacoes       String?
+  lembreteEnviadoEm DateTime?
+  criadoEm          DateTime          @default(now())
+  atualizadoEm      DateTime          @updatedAt
+  deletadoEm        DateTime?
 
-  client    Client  @relation(fields: [clientId], references: [id], onDelete: Restrict)
-  clientId  String
-  service   Service @relation(fields: [serviceId], references: [id], onDelete: Restrict)
-  serviceId String
+  cliente   Cliente @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  clienteId String
+  servico   Servico @relation(fields: [servicoId], references: [id], onDelete: Restrict)
+  servicoId String
 
-  professional   Professional? @relation(fields: [professionalId], references: [id], onDelete: Restrict)
-  professionalId String?
+  profissional   Profissional? @relation(fields: [profissionalId], references: [id], onDelete: Restrict)
+  profissionalId String?
 
-  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
-  salonId String
+  salao   Salao  @relation(fields: [salaoId], references: [id], onDelete: Cascade)
+  salaoId String
 
-  @@index([clientId])
-  @@index([serviceId])
-  @@index([date])
-  @@index([professionalId])
-  @@index([salonId])
+  pagamento Pagamento?
+
+  // Reagendar é cancelar + criar de novo, mas guardando de qual agendamento
+  // veio — sem isso "reagendamentos" (Fase 16/seed demonstrativo) não dá
+  // pra distinguir de um cancelamento comum seguido de um agendamento novo
+  // sem relação nenhuma.
+  reagendadoDe   Agendamento?  @relation("Reagendamento", fields: [reagendadoDeId], references: [id], onDelete: SetNull)
+  reagendadoDeId String?
+  reagendamentos Agendamento[] @relation("Reagendamento")
+
+  @@index([clienteId])
+  @@index([servicoId])
+  @@index([data])
+  @@index([profissionalId])
+  @@index([salaoId])
+  @@index([reagendadoDeId])
+}
+
+// --- Financeiro (Fase 9) ---
+
+enum MetodoPagamento {
+  DINHEIRO
+  PIX
+  CARTAO
+}
+
+model Pagamento {
+  id            String          @id @default(cuid())
+  agendamento   Agendamento     @relation(fields: [agendamentoId], references: [id], onDelete: Cascade)
+  agendamentoId String          @unique
+  valorCentavos Int
+  metodo        MetodoPagamento
+  pagoEm        DateTime        @default(now())
+  criadoEm      DateTime        @default(now())
+
+  comissao Comissao?
+
+  salao   Salao  @relation(fields: [salaoId], references: [id], onDelete: Cascade)
+  salaoId String
+
+  @@index([salaoId, pagoEm])
+}
+
+// Percentual congelado no momento do pagamento (não referencia uma
+// "configuração atual" de comissão) — mudar o percentual padrão do
+// profissional no futuro não deve reescrever comissões já fechadas.
+model Comissao {
+  id             String       @id @default(cuid())
+  profissional   Profissional @relation(fields: [profissionalId], references: [id], onDelete: Cascade)
+  profissionalId String
+  pagamento      Pagamento    @relation(fields: [pagamentoId], references: [id], onDelete: Cascade)
+  pagamentoId    String       @unique
+  percentual     Float
+  valorCentavos  Int
+  criadoEm       DateTime     @default(now())
+
+  salao   Salao  @relation(fields: [salaoId], references: [id], onDelete: Cascade)
+  salaoId String
+
+  @@index([salaoId])
+  @@index([profissionalId])
+}
+
+// --- Assinatura da própria plataforma (Fase 11) ---
+// Salao.plano (string) continua sendo a flag de feature usada por
+// recursosDoPlano() — Plano/Assinatura é a camada de cobrança em cima
+// disso, deliberadamente desacoplada pra não exigir migrar o campo
+// existente. idGatewayExterno fica pronto pro adaptador de cobrança
+// (Stripe/Mercado Pago/Pagar.me) que ainda vai ser plugado.
+model Plano {
+  id            String   @id @default(cuid())
+  chave         String   @unique // "START" | "PRO" | "PREMIUM" — mesmo vocabulário de biblioteca/planos.js
+  nome          String
+  precoCentavos Int
+  limites       Json? // { maxProfissionais, maxAgendamentosMes, ... } — livre de propósito, mesmo padrão de Salao.personalizacao
+  ativo         Boolean  @default(true)
+  criadoEm      DateTime @default(now())
+
+  assinaturas Assinatura[]
+}
+
+enum StatusAssinatura {
+  TESTE
+  ATIVA
+  ATRASADA
+  CANCELADA
+}
+
+model Assinatura {
+  id               String           @id @default(cuid())
+  salao            Salao            @relation(fields: [salaoId], references: [id], onDelete: Cascade)
+  salaoId          String           @unique
+  plano            Plano            @relation(fields: [planoId], references: [id])
+  planoId          String
+  status           StatusAssinatura @default(TESTE)
+  gatewayProvedor  String? // "stripe" | "mercado_pago" | "pagarme" — null enquanto for gerido manualmente
+  idGatewayExterno String?
+  inicioTeste      DateTime?
+  fimTeste         DateTime?
+  proximaCobranca  DateTime?
+  criadoEm         DateTime         @default(now())
+  atualizadoEm     DateTime         @updatedAt
+
+  faturas Fatura[]
+
+  @@index([planoId])
+}
+
+enum StatusFatura {
+  PENDENTE
+  PAGA
+  ATRASADA
+  CANCELADA
+}
+
+model Fatura {
+  id               String       @id @default(cuid())
+  assinatura       Assinatura   @relation(fields: [assinaturaId], references: [id], onDelete: Cascade)
+  assinaturaId     String
+  valorCentavos    Int
+  status           StatusFatura @default(PENDENTE)
+  vencimento       DateTime
+  pagaEm           DateTime?
+  idGatewayExterno String?
+  criadoEm         DateTime     @default(now())
+
+  @@index([assinaturaId, status])
+}
+
+// --- Segurança (Fase 12) ---
+
+model TokenRedefinicaoSenha {
+  id        String    @id @default(cuid())
+  token     String    @unique // hash do token, nunca o valor enviado por e-mail
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId String
+  expiraEm  DateTime
+  usadoEm   DateTime?
+  criadoEm  DateTime  @default(now())
+
+  @@index([usuarioId])
+}
+
+model LogAuditoria {
+  id         String   @id @default(cuid())
+  usuario    Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  usuarioId  String?
+  acao       String // ex.: "salao.suspender", "cliente.excluir"
+  entidade   String // ex.: "Salao", "Cliente"
+  entidadeId String?
+  detalhes   Json?
+  ip         String?
+  userAgent  String?
+  criadoEm   DateTime @default(now())
+
+  salao   Salao?  @relation(fields: [salaoId], references: [id], onDelete: SetNull)
+  salaoId String?
+
+  @@index([salaoId, criadoEm])
+  @@index([usuarioId])
+}
+
+// --- Seed demonstrativo: notificações, financeiro (despesas), estoque, lista de espera ---
+
+enum TipoNotificacao {
+  ANIVERSARIANTE
+  PAGAMENTO_RECEBIDO
+  AGENDAMENTO_CANCELADO
+  ESTOQUE_BAIXO
+  COMISSAO_LIBERADA
+  ASSINATURA_VENCENDO
+}
+
+model Notificacao {
+  id       String          @id @default(cuid())
+  tipo     TipoNotificacao
+  titulo   String
+  mensagem String
+  lida     Boolean         @default(false)
+  criadoEm DateTime        @default(now())
+
+  salao   Salao  @relation(fields: [salaoId], references: [id], onDelete: Cascade)
+  salaoId String
+
+  @@index([salaoId, lida, criadoEm])
+}
+
+enum CategoriaDespesa {
+  ALUGUEL
+  FOLHA_PAGAMENTO
+  PRODUTOS
+  MARKETING
+  MANUTENCAO
+  OUTROS
+}
+
+model Despesa {
+  id            String           @id @default(cuid())
+  descricao     String
+  categoria     CategoriaDespesa
+  valorCentavos Int
+  data          DateTime
+  criadoEm      DateTime         @default(now())
+
+  salao   Salao  @relation(fields: [salaoId], references: [id], onDelete: Cascade)
+  salaoId String
+
+  @@index([salaoId, data])
+}
+
+model CategoriaProduto {
+  id       String   @id @default(cuid())
+  nome     String
+  criadoEm DateTime @default(now())
+
+  salao    Salao     @relation(fields: [salaoId], references: [id], onDelete: Cascade)
+  salaoId  String
+  produtos Produto[]
+
+  @@unique([salaoId, nome])
+}
+
+model Produto {
+  id            String    @id @default(cuid())
+  nome          String
+  precoCentavos Int
+  estoqueAtual  Int       @default(0)
+  estoqueMinimo Int       @default(0)
+  validade      DateTime?
+  ativo         Boolean   @default(true)
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+  deletadoEm    DateTime?
+
+  categoria   CategoriaProduto? @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+  categoriaId String?
+
+  movimentacoes MovimentacaoEstoque[]
+
+  salao   Salao  @relation(fields: [salaoId], references: [id], onDelete: Cascade)
+  salaoId String
+
+  @@unique([salaoId, nome])
+  @@index([salaoId, estoqueAtual])
+}
+
+enum TipoMovimentacaoEstoque {
+  ENTRADA
+  SAIDA
+}
+
+model MovimentacaoEstoque {
+  id         String                  @id @default(cuid())
+  tipo       TipoMovimentacaoEstoque
+  quantidade Int
+  motivo     String?
+  criadoEm   DateTime                @default(now())
+
+  produto   Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  produtoId String
+
+  salao   Salao  @relation(fields: [salaoId], references: [id], onDelete: Cascade)
+  salaoId String
+
+  @@index([salaoId, criadoEm])
+  @@index([produtoId])
+}
+
+// Fila de espera por um horário — Fase 7 (agenda) não foi reconstruída
+// ainda, isso fica pronto pro calendário novo consumir; por enquanto só
+// existe o dado, sem tela própria.
+model ListaEspera {
+  id       String   @id @default(cuid())
+  criadoEm DateTime @default(now())
+  atendida Boolean  @default(false)
+
+  cliente   Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  clienteId String
+  servico   Servico @relation(fields: [servicoId], references: [id], onDelete: Cascade)
+  servicoId String
+
+  profissional   Profissional? @relation(fields: [profissionalId], references: [id], onDelete: SetNull)
+  profissionalId String?
+
+  salao   Salao  @relation(fields: [salaoId], references: [id], onDelete: Cascade)
+  salaoId String
+
+  @@index([salaoId, atendida])
 }
