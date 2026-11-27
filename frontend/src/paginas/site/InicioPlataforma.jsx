@@ -96,10 +96,11 @@ const ETAPAS = [
   },
 ];
 
+// Só fatos do produto (nada de números de mercado): teste grátis, planos e agendamento sem login.
 const ESTATISTICAS = [
-  { valor: "+500", rotulo: "salões" },
-  { valor: "+20 mil", rotulo: "clientes" },
-  { valor: "+100 mil", rotulo: "agendamentos" },
+  { valor: "14 dias", rotulo: "de teste grátis" },
+  { valor: "3 planos", rotulo: "START, PRO e PREMIUM" },
+  { valor: "Sem login", rotulo: "para o cliente agendar" },
 ];
 
 const LINHAS_COMPARACAO = [
