@@ -333,6 +333,12 @@ model Agendamento {
   @@index([profissionalId])
   @@index([salaoId])
   @@index([reagendadoDeId])
+  // A tela de agenda ("agendamentos de hoje do salão X") e os filtros por
+  // status são a consulta mais frequente do sistema — sem estes dois, o
+  // Postgres precisa cruzar dois índices de coluna única em toda chamada
+  // (auditoria de 2026-07-31, item de alto impacto/baixo esforço).
+  @@index([salaoId, data])
+  @@index([salaoId, status])
 }
 
 // --- Financeiro (Fase 9) ---

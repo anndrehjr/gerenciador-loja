@@ -62,7 +62,7 @@ export default function LoginMestre() {
             required
           />
 
-          {erro && <p className="text-sm text-critical">{erro}</p>}
+          {erro && <p className="text-sm text-critical" role="alert">{erro}</p>}
 
           <Botao type="submit" disabled={carregando} className="mt-2 w-full">
             <LogIn className="h-4 w-4" />

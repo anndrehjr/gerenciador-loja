@@ -4,6 +4,8 @@ import { api } from "../../biblioteca/api.js";
 import { formatarDinheiro } from "../../biblioteca/formatacao.js";
 import Botao from "../../componentes/ui/Botao.jsx";
 import CampoTexto from "../../componentes/ui/CampoTexto.jsx";
+import Esqueleto from "../../componentes/ui/Esqueleto.jsx";
+import Mensagem from "../../componentes/ui/Mensagem.jsx";
 
 const FORM_VAZIO = { nome: "", descricao: "", preco: "", duracaoMinutos: "30", ativo: true, idsProfissionais: [] };
 
@@ -184,14 +186,24 @@ export default function Servicos() {
               Cancelar
             </Botao>
           </div>
-          {erro && <p className="w-full text-sm text-critical">{erro}</p>}
+          {erro && <p className="w-full text-sm text-critical" role="alert">{erro}</p>}
         </form>
       )}
 
       {carregando ? (
-        <p className="text-sm text-muted">Carregando…</p>
+        <Esqueleto linhas={5} />
       ) : servicos.length === 0 ? (
-        <p className="text-sm text-muted">Nenhum serviço cadastrado.</p>
+        <Mensagem
+          tipo="vazio"
+          titulo="Nenhum serviço ainda"
+          texto="Cadastre o primeiro serviço do seu salão."
+          acao={
+            <Botao onClick={iniciarCriacao} className="px-3.5 py-2 text-xs">
+              <Plus className="h-3.5 w-3.5" />
+              Novo serviço
+            </Botao>
+          }
+        />
       ) : (
         <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
           {servicos.map((servico) => (

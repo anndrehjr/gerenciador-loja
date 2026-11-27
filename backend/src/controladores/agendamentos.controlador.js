@@ -3,6 +3,7 @@ import { prisma } from "../biblioteca/prisma.js";
 import { ErroHttp } from "../middleware/tratadorErros.js";
 import { enviarConfirmacaoAgendamento, enviarCancelamentoAgendamento } from "../biblioteca/whatsapp.js";
 import { parsePaginacao, definirCabecalhoTotal } from "../biblioteca/paginacao.js";
+import { garantirLimiteDeAgendamentosDoMes } from "../servicos/assinatura.servico.js";
 
 const VALORES_STATUS = ["AGENDADO", "CONFIRMADO", "EM_ATENDIMENTO", "CONCLUIDO", "CANCELADO"];
 
@@ -83,6 +84,7 @@ export async function obterAgendamento(req, res) {
 export async function criarAgendamento(req, res) {
   const dados = esquemaAgendamento.parse(req.body);
   await garantirPertenceAoSalaoAtual(req.salaoId, dados);
+  await garantirLimiteDeAgendamentosDoMes(req.salaoId);
 
   const agendamento = await prisma.agendamento.create({
     data: { ...dados, salaoId: req.salaoId },

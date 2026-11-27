@@ -217,7 +217,7 @@ function ModalRedefinirSenha({ usuario, salaoId, onFechar }) {
           value={senha}
           onChange={(e) => setSenha(e.target.value)}
         />
-        {erro && <p className="text-sm text-critical">{erro}</p>}
+        {erro && <p className="text-sm text-critical" role="alert">{erro}</p>}
         <Botao type="submit" disabled={enviando} className="w-full">
           <KeyRound className="h-4 w-4" />
           {enviando ? "Salvando…" : "Redefinir senha"}
@@ -545,7 +545,7 @@ export default function ModalDetalheSalao({ salaoId, onFechar, onAtualizado }) {
               {/* ===== Rodapé fixo ===== */}
               <footer className="flex shrink-0 items-center justify-between gap-4 border-t border-line bg-surface/60 px-6 py-4 sm:px-8">
                 <p className="text-xs text-muted">
-                  {erro ? <span className="text-critical">{erro}</span> : `Última alteração salva em ${formatarDataHora(salao.atualizadoEm)}`}
+                  {erro ? <span className="text-critical" role="alert">{erro}</span> : `Última alteração salva em ${formatarDataHora(salao.atualizadoEm)}`}
                 </p>
                 <div className="flex items-center gap-3">
                   <Botao type="button" variante="ghost" onClick={onFechar}>

@@ -5,6 +5,7 @@ import { ErroHttp } from "../middleware/tratadorErros.js";
 import { normalizarTelefone } from "../utilitarios/telefone.js";
 import { obterFaixaDisponibilidade, estaHorarioLivre } from "../biblioteca/disponibilidade.js";
 import { enviarConfirmacaoAgendamento } from "../biblioteca/whatsapp.js";
+import { garantirLimiteDeAgendamentosDoMes } from "../servicos/assinatura.servico.js";
 
 const MENSAGEM_HORARIO_OCUPADO = "Esse horário acabou de ficar indisponível. Escolha outro.";
 
@@ -152,6 +153,7 @@ export async function criarAgendamentoPublico(req, res) {
   if (!cliente) throw new ErroHttp(404, "Cliente não encontrado.");
   if (!servico || !servico.ativo) throw new ErroHttp(404, "Serviço indisponível.");
   if (!profissional || !profissional.ativo) throw new ErroHttp(404, "Profissional indisponível.");
+  await garantirLimiteDeAgendamentosDoMes(req.salaoId);
 
   // Serviço sem nenhum vínculo aceita qualquer profissional do salão (como
   // sempre foi); com vínculo, só valida contra quem está de fato vinculado —

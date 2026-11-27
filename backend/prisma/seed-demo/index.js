@@ -29,7 +29,6 @@ import {
   pesoMes,
   minutoDoDia,
   combinarData,
-  gerarCpfFalso,
   gerarCnpjFalso,
   gerarTelefoneFalso,
   normalizarParaSlug,

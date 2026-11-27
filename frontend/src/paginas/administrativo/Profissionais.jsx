@@ -370,7 +370,7 @@ export default function Profissionais() {
             </div>
           )}
 
-          {erro && <p className="text-sm text-critical">{erro}</p>}
+          {erro && <p className="text-sm text-critical" role="alert">{erro}</p>}
         </div>
       )}
 

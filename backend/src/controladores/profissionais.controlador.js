@@ -2,6 +2,7 @@ import { z } from "zod";
 import { prisma } from "../biblioteca/prisma.js";
 import { ErroHttp } from "../middleware/tratadorErros.js";
 import { parsePaginacao, definirCabecalhoTotal } from "../biblioteca/paginacao.js";
+import { garantirLimiteDeProfissionais } from "../servicos/assinatura.servico.js";
 
 const esquemaProfissional = z.object({
   nome: z.string().min(1),
@@ -88,6 +89,7 @@ export async function obterProfissional(req, res) {
 
 export async function criarProfissional(req, res) {
   const dados = esquemaProfissional.parse(req.body);
+  await garantirLimiteDeProfissionais(req.salaoId);
   const profissional = await prisma.profissional.create({
     data: { ...dados, salaoId: req.salaoId },
     include: incluir,

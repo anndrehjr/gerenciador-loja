@@ -359,7 +359,7 @@ function CartaoTrocarSenha() {
         value={novaSenha}
         onChange={(e) => setNovaSenha(e.target.value)}
       />
-      {erro && <p className="text-sm text-critical">{erro}</p>}
+      {erro && <p className="text-sm text-critical" role="alert">{erro}</p>}
       <Botao type="submit" disabled={salvando} className="self-start">
         <KeyRound className="h-4 w-4" />
         {salvando ? "Salvando…" : "Trocar senha"}
@@ -592,7 +592,7 @@ export default function Configuracoes() {
             </>
           )}
 
-          {erro && <p className="text-sm text-critical">{erro}</p>}
+          {erro && <p className="text-sm text-critical" role="alert">{erro}</p>}
           {salvo && <p className="text-sm text-accent-ink">Salvo.</p>}
 
           <Botao type="submit" disabled={salvando} className="self-start">
@@ -754,7 +754,7 @@ export default function Configuracoes() {
             </div>
           </div>
 
-          {erroPersonalizado && <p className="text-sm text-critical">{erroPersonalizado}</p>}
+          {erroPersonalizado && <p className="text-sm text-critical" role="alert">{erroPersonalizado}</p>}
           {salvoPersonalizado && <p className="text-sm text-accent-ink">Salvo.</p>}
 
           <Botao type="submit" disabled={salvandoPersonalizado} className="self-start">

@@ -157,7 +157,7 @@ export default function Equipe() {
               Cancelar
             </Botao>
           </div>
-          {erro && <p className="w-full text-sm text-critical">{erro}</p>}
+          {erro && <p className="w-full text-sm text-critical" role="alert">{erro}</p>}
         </form>
       )}
 

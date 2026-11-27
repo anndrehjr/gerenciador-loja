@@ -148,7 +148,7 @@ function EtapaTelefone({ aoAvancar }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          {erro && <p className="text-sm text-critical">{erro}</p>}
+          {erro && <p className="text-sm text-critical" role="alert">{erro}</p>}
           <Botao type="submit" disabled={enviando} className="self-start">
             {enviando ? "Enviando…" : "Cadastrar e Continuar"}
             <ArrowRight className="h-4 w-4" />
@@ -457,7 +457,7 @@ function EtapaConfirmacao({ agendamento, aoConfirmar, aoVoltar, enviando, erro }
         <LinhaResumo rotulo="Valor" valor={formatarDinheiro(servico.precoCentavos)} />
       </div>
 
-      {erro && <p className="text-sm text-critical">{erro}</p>}
+      {erro && <p className="text-sm text-critical" role="alert">{erro}</p>}
 
       <div className="flex items-center gap-2">
         <Botao variante="ghost" onClick={aoVoltar} disabled={enviando}>

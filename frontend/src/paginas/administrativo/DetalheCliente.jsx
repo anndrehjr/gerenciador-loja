@@ -157,7 +157,7 @@ export default function DetalheCliente() {
           Cliente VIP
         </label>
 
-        {erro && <p className="text-sm text-critical">{erro}</p>}
+        {erro && <p className="text-sm text-critical" role="alert">{erro}</p>}
 
         <Botao type="submit" disabled={salvando} className="self-start">
           {salvando ? "Salvando…" : "Salvar alterações"}

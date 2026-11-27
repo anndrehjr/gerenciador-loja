@@ -121,7 +121,7 @@ function ModalRegistrarPagamento({ aberto, onFechar, onRegistrado }) {
           onChange={(e) => setForm({ ...form, percentualComissao: e.target.value })}
         />
 
-        {erro && <p className="text-sm text-critical">{erro}</p>}
+        {erro && <p className="text-sm text-critical" role="alert">{erro}</p>}
 
         <Botao type="submit" disabled={enviando} className="mt-2 w-full">
           {enviando ? "Salvando…" : "Registrar pagamento"}
@@ -201,7 +201,7 @@ function ModalRegistrarDespesa({ aberto, onFechar, onRegistrada }) {
           value={form.data}
           onChange={(e) => setForm({ ...form, data: e.target.value })}
         />
-        {erro && <p className="text-sm text-critical">{erro}</p>}
+        {erro && <p className="text-sm text-critical" role="alert">{erro}</p>}
         <Botao type="submit" disabled={enviando} className="mt-2 w-full">
           {enviando ? "Salvando…" : "Registrar despesa"}
         </Botao>

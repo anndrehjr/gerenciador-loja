@@ -11,7 +11,9 @@
     "prisma:studio": "prisma studio",
     "seed": "node prisma/seed.js",
     "seed:demo": "node prisma/seed-demo/index.js",
-    "test": "node --test --test-reporter spec src/**/*.test.js prisma/seed-demo/**/*.test.js"
+    "test": "node --test --test-reporter spec src/**/*.test.js prisma/seed-demo/**/*.test.js",
+    "lint": "eslint .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",
@@ -24,10 +26,16 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
+    "proxy-addr": "2.0.8",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.8.0",
+    "globals": "^16.5.0",
     "nodemon": "^3.1.4",
-    "prisma": "^5.20.0"
+    "prettier": "^3.9.6",
+    "prisma": "^5.20.0",
+    "supertest": "^7.2.2"
   }
 }

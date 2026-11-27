@@ -5,6 +5,8 @@ import { formatarDataHora, formatarDinheiro, ROTULOS_STATUS } from "../../biblio
 import Botao from "../../componentes/ui/Botao.jsx";
 import CampoSelecao from "../../componentes/ui/CampoSelecao.jsx";
 import CampoTexto from "../../componentes/ui/CampoTexto.jsx";
+import Esqueleto from "../../componentes/ui/Esqueleto.jsx";
+import Mensagem from "../../componentes/ui/Mensagem.jsx";
 
 const FORM_VAZIO = {
   clienteId: "",
@@ -180,14 +182,26 @@ export default function Agendamentos() {
               Cancelar
             </Botao>
           </div>
-          {erro && <p className="w-full text-sm text-critical">{erro}</p>}
+          {erro && <p className="w-full text-sm text-critical" role="alert">{erro}</p>}
         </form>
       )}
 
       {carregando ? (
-        <p className="text-sm text-muted">Carregando…</p>
+        <Esqueleto linhas={5} />
       ) : agendamentos.length === 0 ? (
-        <p className="text-sm text-muted">Nenhum agendamento encontrado.</p>
+        <Mensagem
+          tipo="vazio"
+          titulo={filtroStatus ? "Nenhum agendamento com esse status" : "Nenhum agendamento ainda"}
+          texto={filtroStatus ? "Tente outro filtro de status." : "Crie o primeiro agendamento do seu salão."}
+          acao={
+            !filtroStatus && (
+              <Botao onClick={iniciarCriacao} className="px-3.5 py-2 text-xs">
+                <Plus className="h-3.5 w-3.5" />
+                Novo agendamento
+              </Botao>
+            )
+          }
+        />
       ) : (
         <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
           {agendamentos.map((a) => (

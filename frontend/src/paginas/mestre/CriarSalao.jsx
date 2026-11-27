@@ -311,7 +311,7 @@ export default function CriarSalao() {
             <ComponenteEtapa form={form} definir={definir} setForm={setForm} />
           </div>
 
-          {erro && <p className="relative mt-5 text-sm text-critical">{erro}</p>}
+          {erro && <p className="relative mt-5 text-sm text-critical" role="alert">{erro}</p>}
 
           <div className="relative mt-8 flex items-center justify-between border-t border-line pt-5">
             <Botao variante="ghost" onClick={voltar} disabled={etapa === 0 || carregando}>

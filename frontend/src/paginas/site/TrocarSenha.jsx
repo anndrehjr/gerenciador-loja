@@ -85,7 +85,7 @@ export default function TrocarSenha() {
               required
             />
 
-            {erro && <p className="text-sm text-critical">{erro}</p>}
+            {erro && <p className="text-sm text-critical" role="alert">{erro}</p>}
 
             <Botao type="submit" disabled={enviando} className="mt-2 w-full">
               <KeyRound className="h-4 w-4" />

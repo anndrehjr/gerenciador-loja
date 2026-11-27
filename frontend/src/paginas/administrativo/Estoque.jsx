@@ -65,7 +65,7 @@ function ModalMovimentacao({ produto, onFechar, onRegistrada }) {
           value={quantidade}
           onChange={(e) => setQuantidade(e.target.value)}
         />
-        {erro && <p className="text-sm text-critical">{erro}</p>}
+        {erro && <p className="text-sm text-critical" role="alert">{erro}</p>}
         <Botao type="submit" disabled={enviando} className="w-full">
           {enviando ? "Salvando…" : "Registrar"}
         </Botao>
@@ -222,7 +222,7 @@ export default function Estoque() {
               Cancelar
             </Botao>
           </div>
-          {erro && <p className="w-full text-sm text-critical">{erro}</p>}
+          {erro && <p className="w-full text-sm text-critical" role="alert">{erro}</p>}
         </form>
       )}
 

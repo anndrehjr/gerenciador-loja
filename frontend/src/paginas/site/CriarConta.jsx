@@ -250,7 +250,7 @@ export default function CriarConta() {
               onChange={(e) => setConta({ ...conta, senhaAdmin: e.target.value })}
             />
 
-            {erro && <p className="text-sm text-critical">{erro}</p>}
+            {erro && <p className="text-sm text-critical" role="alert">{erro}</p>}
 
             <div className="mt-2 flex items-center justify-between">
               <Botao type="button" variante="ghost" onClick={() => setEtapa(1)} disabled={carregando}>
@@ -294,7 +294,7 @@ export default function CriarConta() {
               />
             </div>
 
-            {erro && <p className="text-sm text-critical">{erro}</p>}
+            {erro && <p className="text-sm text-critical" role="alert">{erro}</p>}
 
             <div className="mt-2 flex items-center justify-between">
               <Botao type="button" variante="ghost" onClick={() => setEtapa(4)} disabled={carregando}>
@@ -326,7 +326,7 @@ export default function CriarConta() {
               onChange={(e) => setProfissional({ ...profissional, especialidade: e.target.value })}
             />
 
-            {erro && <p className="text-sm text-critical">{erro}</p>}
+            {erro && <p className="text-sm text-critical" role="alert">{erro}</p>}
 
             <div className="mt-2 flex items-center justify-between">
               <Botao type="button" variante="ghost" onClick={() => setEtapa(5)} disabled={carregando}>
